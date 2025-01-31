@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMovieRequest;
 use App\Http\Requests\UpdateMovieRequest;
 use App\Models\Movie;
+use Exception;
 use Illuminate\Http\Request;
 
 class MovieController extends Controller
@@ -56,11 +57,18 @@ class MovieController extends Controller
     }
 
     public function store(StoreMovieRequest $request) {
-        $movie = Movie::create($request->validated());
-        $movie->categories()->sync($request->categories);
+        try {
+            $movie = Movie::create($request->validated());
+            $movie->categories()->sync($request->categories);
 
-        return response()->json($movie, 201);
-    
+            return response()->json($movie, 201);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error creating new movie',
+            ], 500);
+        }
+        
     }
 
     public function update(UpdateMovieRequest $request, $id) {
