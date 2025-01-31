@@ -32,6 +32,7 @@ class StoreMovieRequest extends FormRequest
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
             'standard_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
             'thumbnail_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'movie_file' => 'nullable|mimes:mp4,mkv,avi,mov,webm,mpeg,mpg,ogv,3gp|max:5096000',
             'type' => 'required|in:movie,series',
             'category_ids' => 'array',
             'category_ids.*' => 'exists:categories,id',

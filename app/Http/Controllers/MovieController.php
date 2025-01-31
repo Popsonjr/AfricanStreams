@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateMovieRequest;
 use App\Models\Movie;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MovieController extends Controller
 {
@@ -58,7 +59,20 @@ class MovieController extends Controller
 
     public function store(StoreMovieRequest $request) {
         try {
-            $movie = Movie::create($request->validated());
+            $data = $request->validated();
+            if ($request->hasFile('cover_image')) {
+                $data['cover_image'] = $this->storeFile($request->file('cover_image'),'movies/covers');
+            }
+            if ($request->hasFile('standard_image')) {
+                $data['standard_image'] = $this->storeFile($request->file('standard_image'),'movies/standard');
+            }
+            if ($request->hasFile('thumbnail_image')) {
+                $data['thumbnail_image'] = $this->storeFile($request->file('thumbnail_image'),'movies/thumbnail');
+            }
+            if ($request->hasFile('movie_file')) {
+                $data['movie_file'] = $this->storeFile($request->file('movie_file'),'movies/videos');
+            }
+            $movie = Movie::create($data);
             $movie->categories()->sync($request->categories);
 
             return response()->json($movie, 201);
@@ -84,5 +98,13 @@ class MovieController extends Controller
         $movie->delete();
 
         return response()->json(['message' => 'Movie deleted successfully']);
+    }
+
+    /**
+     * Store uploaded file and return full url
+     */
+    private function storeFile($file, $folder) {
+        $path = $file->store($folder, 'public');
+        return Storage::url($path);
     }
 }
