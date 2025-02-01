@@ -13,36 +13,44 @@ class MovieController extends Controller
 {
     //Fetch All Movies (with Filters, Search, pAgination)
     public function index(Request $request) {
-        $query = Movie::with('categories', 'genre', 'seasons', 'related_movies');
+        try {
+            $query = Movie::with('categories', 'genre', 'seasons', 'relatedMovies');
 
-        if($request->has('category')) {
-            $query->whereHas('categories', function ($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
+            if($request->has('category')) {
+                $query->whereHas('categories', function ($q) use ($request) {
+                    $q->where('slug', $request->category);
+                });
+            }
+
+            if($request->has('genre')) {
+                $query->whereHas('genre', function($q) use ($request) {
+                    $q->where('slug', $request->genre);
+                });
+            }
+
+            if($request->has('season')) {
+                $query->whereHas('seasons', function ($q) use($request) {
+                    $q->where('season_number', $request->season);
+                });
+            }
+
+            if ($request->has('search')) {
+                $query->where('title', 'LIKE', '%' . $request->search . '%');
+            }
+
+            if($request->has('type')) {
+                $query->where('type', $request->type);
+            }
+
+            $movies = $query->paginate(10);
+            return response()->json($movies);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error fetching movies'
+            ], 500);
         }
-
-        if($request->has('genre')) {
-            $query->whereHas('genre', function($q) use ($request) {
-                $q->where('slug', $request->genre);
-            });
-        }
-
-        if($request->has('season')) {
-            $query->whereHas('seasons', function ($q) use($request) {
-                $q->where('season_number', $request->season);
-            });
-        }
-
-        if ($request->has('search')) {
-            $query->where('title', 'LIKE', '%' . $request->search . '%');
-        }
-
-        if($request->has('type')) {
-            $query->where('type', $request->type);
-        }
-
-        $movies = $query->paginate(10);
-        return response()->json($movies);
+        
     }
 
     public function show ($id) {
@@ -73,7 +81,13 @@ class MovieController extends Controller
                 $data['movie_file'] = $this->storeFile($request->file('movie_file'),'movies/videos');
             }
             $movie = Movie::create($data);
-            $movie->categories()->sync($request->categories);
+            if($request->has('category_ids') && is_array($request->category_ids)) {
+                $movie->categories()->sync($request->category_ids);
+            }
+
+            if($request->has('related_movie_ids') && is_array($request->related_movie_ids)) {
+                $movie->relatedMovies()->sync($request->related_movie_ids);
+            }
 
             return response()->json($movie, 201);
         } catch(Exception $e) {
