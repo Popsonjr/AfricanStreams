@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Genre;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -37,7 +38,14 @@ class GenreController extends Controller
      */
     public function show(Genre $genre)
     {
-        return response()->json($genre, 200);
+        try {
+            return response()->json($genre, 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while getting genre'
+            ], 500);
+        }
     }
 
     /**

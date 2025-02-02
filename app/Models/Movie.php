@@ -13,6 +13,24 @@ class Movie extends Model
         'title', 'description', 'release_date', 'duration', 'cast', 'genre_id', 'trailer_uri', 'cover_image', 'standard_image', 'thumbnail_image', 'movie_file', 'type'
     ];
 
+    // protected $appends = ['']
+
+    public function getCoverImageAttribute($value) {
+        return $value ? config('app.url') . $value : null;
+    }
+
+    public function getStandardImageAttribute($value) {
+        return $value ? config('app.url') . $value : null;
+    }
+
+    public function getThumbnailImageAttribute($value) {
+        return $value ? config('app.url') . $value : null;
+    }
+
+    public function getMovieFileAttribute($value) {
+        return $value ? config('app.url') . $value : null;
+    }
+
     public function genre() {
         return $this->belongsTo(Genre::class);
     }

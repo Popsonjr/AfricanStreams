@@ -54,8 +54,15 @@ class MovieController extends Controller
     }
 
     public function show ($id) {
-        $movie = Movie::with(['genre', 'categories', 'seasons.episodes'])->findOrFail($id);
-        return response()->json($movie);
+        try {
+            $movie = Movie::with(['genre', 'categories', 'seasons.episodes'])->findOrFail($id);
+            return response()->json($movie);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error getting movie',
+            ], 500);
+        }
     }
 
     //Fetch Related Movies

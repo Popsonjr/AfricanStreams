@@ -30,6 +30,7 @@ Route::prefix('auth')->group(function () {
 Route::prefix('admin')->group(function () {
     Route::post('/register', [AdminAuthController::class, 'register']);
     Route::apiResource('movies', MovieController::class);
+    Route::post('/movies', [MovieController::class, 'store'])->middleware('auth:admin');
     Route::get('movies/{id}/related', [MovieController::class, 'related']);
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('genres', GenreController::class);
