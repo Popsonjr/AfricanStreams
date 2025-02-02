@@ -29,6 +29,19 @@ Route::prefix('auth')->group(function () {
 
 Route::prefix('admin')->group(function () {
     Route::post('/register', [AdminAuthController::class, 'register']);
+    Route::post('/login', [AdminAuthController::class, 'login']);
+    Route::post('/logout', [AdminAuthController::class, 'logout']);
+    Route::post('/email/verify', [AdminAuthController::class, 'verifyEmail']);
+    Route::post('/email/resend', [AdminAuthController::class, 'resendVerificationEmail']);
+    Route::post('/refresh', [AdminAuthController::class, 'refresh']);
+    Route::post('/me', [AdminAuthController::class, 'me'])->middleware('auth:admin');
+    Route::post('/get-user', [AdminAuthController::class, 'getUser']);
+    Route::post('/password/reset-request', [AdminAuthController::class, 'sendResetLink']);
+    Route::post('/password/reset', [AdminAuthController::class, 'resetPassword']);
+    Route::post('/password/change', [AdminAuthController::class, 'changePassword'])->middleware('auth:admin');
+
+
+    
     Route::apiResource('movies', MovieController::class);
     Route::post('/movies', [MovieController::class, 'store'])->middleware('auth:admin');
     Route::get('movies/{id}/related', [MovieController::class, 'related']);

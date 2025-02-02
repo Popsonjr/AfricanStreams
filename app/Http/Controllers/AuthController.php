@@ -65,16 +65,20 @@ class AuthController extends Controller
         );
 
         try {
-            If (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+            $user = User::where('email', $credentials['email'])->first();
+            if(!$user) {
+                return response()->json(['error' => 'User not found'], 404);
             }
-    
-            return response()->json(['token' =>$token]);
+            If (!$token = JWTAuth::attempt($credentials)) {
+                return response()->json(['error' => 'Invalid password'], 401);
+            }
+            
+            return response()->json([
+                'token' => $token, 
+                'user' => $user]);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
         }
-        
-        
     }
     
     /**
@@ -104,11 +108,11 @@ class AuthController extends Controller
             $token = JWTAuth::getToken();
             return response()->json(['token' => JWTAuth::refresh($token)]);
         } catch (Exception $e) {
-            Log::error('Error while refreshing token', [
-               'message' => $e->getMessage(),
-               'file' => $e->getFile(),
-               'line' => $e->getLine()
-            ]);
+            // Log::error('Error while refreshing token', [
+            //    'message' => $e->getMessage(),
+            //    'file' => $e->getFile(),
+            //    'line' => $e->getLine()
+            // ]);
             return response()->json([
                 'error' => 'Failed to refresh token, please try again',
                 'message' => $e->getMessage()
@@ -165,16 +169,16 @@ class AuthController extends Controller
     public function handleGoogleCallback() {
         try {
         
-        $googleUser = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')->user();
 
-        $user = User::firstOrCreate(
-            [
-                'email' => $googleUser->getEmail(),
-            ], 
-            [
-                'name' => $googleUser->getName(),
-                'password' => bcrypt(str()->random(16)),
-            ]
+            $user = User::firstOrCreate(
+                [
+                    'email' => $googleUser->getEmail(),
+                ], 
+                [
+                    'name' => $googleUser->getName(),
+                    'password' => bcrypt(str()->random(16)),
+                ]
             );
 
             $token = JWTAuth::fromUser($user);
