@@ -27,21 +27,29 @@ class AuthController extends Controller
      * @return void
      */
     public function register(Request $request) {
-        $request->validate([
-            'name' => 'required|String|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|String|min:6',
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|String|max:255',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|String|min:6',
+            ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
 
-        $token = JWTAuth::fromUser($user);
-        // return response()->json(['user' => $user, 'token' => $token], 201);
-        return response()->json(compact('user','token'), 201);
+            $token = JWTAuth::fromUser($user);
+            // return response()->json(['user' => $user, 'token' => $token], 201);
+            return response()->json(compact('user','token'), 201);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while registering user'
+            ], 500);
+        }
+
     }
         
     /**
@@ -139,7 +147,14 @@ class AuthController extends Controller
      * @return void
      */
     public function redirectToGoogle() {
-        return Socialite::driver('google')->redirect();
+        try {
+            return Socialite::driver('google')->redirect();
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while redirecting to Google'
+            ], 500);
+        }
     }
     
     /**
@@ -177,22 +192,29 @@ class AuthController extends Controller
      * @return void
      */
     public function verifyEmail(Request $request) {
-        $request->validate([
-            'token' => 'required'
-        ]);
+        try {
+            $request->validate([
+                'token' => 'required'
+            ]);
 
-        $user = User::where('verification_token', $request->token)->first();
+            $user = User::where('verification_token', $request->token)->first();
 
-        if (!$user) {
-            return response()->json(['message' => 'Invalid token'], 400);
+            if (!$user) {
+                return response()->json(['message' => 'Invalid token'], 400);
+            }
+
+            $user->update([
+                'email_verified_at' => now(),
+                'verification_token' => null,
+            ]);
+
+            return response()->json(['message' => 'Email verified successfully']);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while verifying email'
+            ], 500);
         }
-
-        $user->update([
-            'email_verified_at' => now(),
-            'verification_token' => null,
-        ]);
-
-        return response()->json(['message' => 'Email verified successfully']);
     }
     
     /**
@@ -233,71 +255,92 @@ class AuthController extends Controller
     }
 
     public function sendResetLink(Request $request) {
-        $request->validate(['email' => 'required|email|exists:users,email']);
+        try {
+            $request->validate(['email' => 'required|email|exists:users,email']);
 
-        $token = Str::random(64);
-        DB::table('password_resets')->updateOrInsert(
-            ['email' => $request->email],
-            [
-                'token' => Hash::make($token),
-                // 'token' => $token,
-                'created_at' => now()
-            ]
-        );
+            $token = Str::random(64);
+            DB::table('password_resets')->updateOrInsert(
+                ['email' => $request->email],
+                [
+                    'token' => Hash::make($token),
+                    // 'token' => $token,
+                    'created_at' => now()
+                ]
+            );
 
-        Log::info('send reset link ', [
-            'Token' => $token,
-            'Hashed Token' => Hash::make($token)
-        ]);
-        Mail::to($request->email)->queue(new ResetPasswordEmail($token));
+            Log::info('send reset link ', [
+                'Token' => $token,
+                'Hashed Token' => Hash::make($token)
+            ]);
+            Mail::to($request->email)->queue(new ResetPasswordEmail($token));
 
-        return response()->json(['message' => 'Reset link sent']);
+            return response()->json(['message' => 'Reset link sent']);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while resetting link'
+            ], 500);
+        }
     }
 
     public function resetPassword(Request $request) {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email|exists:users,email',
-            'password' => 'required|min:6|confirmed',
-        ]);
+        try {
+            $request->validate([
+                'token' => 'required',
+                'email' => 'required|email|exists:users,email',
+                'password' => 'required|min:6|confirmed',
+            ]);
 
-        $record = DB::table('password_resets')
-        ->where('email', $request->email)
-        ->first();
+            $record = DB::table('password_resets')
+            ->where('email', $request->email)
+            ->first();
 
-        if (!$record) {
-            return response()->json(['message' => 'Invalid email or token'], 400);
+            if (!$record) {
+                return response()->json(['message' => 'Invalid email or token'], 400);
+            }
+            
+            if (!Hash::check($request->token, $record->token)) {
+                return response()->json(['message' => 'Invalid token'], 400);
+            }
+
+            User::where('email', $request->email)->update([
+                'password' => Hash::make($request->password)
+            ]);
+
+            DB::table('password_resets')->where('email', $request->email)->delete();
+
+            return response()->json(['message' => 'Password reset successfully']);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while resetting password'
+            ], 500);
         }
-        
-        if (!Hash::check($request->token, $record->token)) {
-            return response()->json(['message' => 'Invalid token'], 400);
-        }
-
-        User::where('email', $request->email)->update([
-            'password' => Hash::make($request->password)
-        ]);
-
-        DB::table('password_resets')->where('email', $request->email)->delete();
-
-        return response()->json(['message' => 'Password reset successfully']);
     }
 
     public function changePassword(Request $request) {
-        $request->validate([
-           'current_password' => 'required',
-           'password' => 'required|min:6|confirmed', 
-        ]);
+        try {
+            $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|min:6|confirmed', 
+            ]);
 
-        $user = JWTAuth::user();
+            $user = JWTAuth::user();
 
-        if(!Hash::check($request->current_password, $user->password)) {
-            return response()->json(['message' => 'Incorrect current password', 400]);
+            if(!Hash::check($request->current_password, $user->password)) {
+                return response()->json(['message' => 'Incorrect current password', 400]);
+            }
+
+            $user->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            return response()->json(['message' => 'Password changed successfully']);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while changing password'
+            ], 500);
         }
-
-        $user->update([
-            'password' => Hash::make($request->new_password)
-        ]);
-
-        return response()->json(['message' => 'Password chnaged successfully']);
     }
 }
