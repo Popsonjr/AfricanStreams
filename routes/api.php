@@ -35,7 +35,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/email/resend', [AdminAuthController::class, 'resendVerificationEmail']);
     Route::post('/refresh', [AdminAuthController::class, 'refresh']);
     Route::post('/me', [AdminAuthController::class, 'me'])->middleware('auth:admin');
-    Route::post('/get-user', [AdminAuthController::class, 'getUser']);
+    Route::post('/get-user', [AdminAuthController::class, 'getUser'])->middleware('auth:admin');
     Route::post('/password/reset-request', [AdminAuthController::class, 'sendResetLink']);
     Route::post('/password/reset', [AdminAuthController::class, 'resetPassword']);
     Route::post('/password/change', [AdminAuthController::class, 'changePassword'])->middleware('auth:admin');

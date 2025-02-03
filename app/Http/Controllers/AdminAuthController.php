@@ -106,4 +106,28 @@ class AdminAuthController extends Controller
         }
         
     }
+
+    /**
+     * Get Authenticated User
+     *
+     * @return User
+     */
+    public function getUser() {
+        try {
+            if (! $admin = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['error' => 'Admin user not found'], 404);
+            }
+        } catch (JWTException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Invalid Token'
+            ], 400);
+        }
+
+        return response()->json(compact('admin'));
+    }
+
+    public function me() {
+        return response()->json(JWTAuth::user());
+    }
 }
