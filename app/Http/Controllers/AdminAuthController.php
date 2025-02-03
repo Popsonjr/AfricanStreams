@@ -308,4 +308,30 @@ class AdminAuthController extends Controller
             ], 500);
         }
     }
+    
+    public function changePassword(Request $request) {
+        try {
+            $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|min:6|confirmed', 
+            ]);
+
+            $admin = JWTAuth::user();
+
+            if(!Hash::check($request->current_password, $admin->password)) {
+                return response()->json(['message' => 'Incorrect current password', 400]);
+            }
+
+            $admin->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            return response()->json(['message' => 'Password changed successfully']);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while changing password'
+            ], 500);
+        }
+    }
 }
