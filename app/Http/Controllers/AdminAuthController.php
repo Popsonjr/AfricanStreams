@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AdminAuthController extends Controller
@@ -129,5 +130,49 @@ class AdminAuthController extends Controller
 
     public function me() {
         return response()->json(JWTAuth::user());
+    }
+
+    /**
+     * redirectToGoogle
+     *
+     * @return void
+     */
+    public function redirectToGoogle() {
+        try {
+            return Socialite::driver('google')->redirect();
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while redirecting to Google'
+            ], 500);
+        }
+    }
+    
+    /**
+     * handleGoogleCallback
+     *
+     * @return void
+     */
+    public function handleGoogleCallback() {
+        try {
+        
+            $googleUser = Socialite::driver('google')->user();
+
+            $admin = Admin::firstOrCreate(
+                [
+                    'email' => $googleUser->getEmail(),
+                ], 
+                [
+                    'name' => $googleUser->getName(),
+                    'password' => bcrypt(str()->random(16)),
+                ]
+            );
+
+            $token = JWTAuth::fromUser($admin);
+            return response()->json(['user' => $admin, 'token' => $token]);
+
+        } catch (Exception $th) {
+            return response()->json(['Error' => $th->getMessage()], 500);
+        }
     }
 }
