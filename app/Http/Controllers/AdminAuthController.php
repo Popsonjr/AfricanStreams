@@ -71,4 +71,39 @@ class AdminAuthController extends Controller
             return response()->json(['error' => 'Could not create token'], 500);
         }
     }
+
+    /**
+     * logout
+     *
+     * @return void
+     */
+    public function logout() {
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+            return response()->json(['message' => 'Successfully logged out']);
+        } catch(JWTException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Could not logout',
+            ], 500);
+        }
+    }
+    
+    /**
+     * refresh
+     *
+     * @return void
+     */
+    public function refresh() {
+        try {
+            $token = JWTAuth::getToken();
+            return response()->json(['token' => JWTAuth::refresh($token)]);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Failed to refresh token, please try again',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+        
+    }
 }
