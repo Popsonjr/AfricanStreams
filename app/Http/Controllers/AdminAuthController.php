@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ResetPasswordEmail;
 use App\Mail\VerificationEmail;
 use App\Models\Admin;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
@@ -245,6 +247,65 @@ class AdminAuthController extends Controller
             ]);
         } catch (Exception $th) {
             return response()->json(['Error' => $th->getMessage()], 500);
+        }
+    }
+
+    public function sendResetLink(Request $request) {
+        try {
+            $request->validate(['email' => 'required|email|exists:admins,email']);
+
+            $token = Str::random(64);
+            DB::table('password_resets')->updateOrInsert(
+                ['email' => $request->email],
+                [
+                    'token' => Hash::make($token),
+                    // 'token' => $token,
+                    'created_at' => now()
+                ]
+            );
+            Mail::to($request->email)->queue(new ResetPasswordEmail($token));
+
+            return response()->json(['message' => 'Reset link sent']);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while resetting link'
+            ], 500);
+        }
+    }
+
+    public function resetPassword(Request $request) {
+        try {
+            $request->validate([
+                'token' => 'required',
+                'email' => 'required|email|exists:admins,email',
+                'password' => 'required|min:6|confirmed',
+            ]);
+
+            $record = DB::table('password_resets')
+            ->where('email', $request->email)
+            ->first();
+
+            if (!$record) {
+                return response()->json(['message' => 'Invalid email or token'], 400);
+            }
+            
+            if (!Hash::check($request->token, $record->token)) {
+                return response()->json(['message' => 'Invalid token'], 400);
+            }
+
+            Admin::where('email', $request->email)->update([
+                'password' => Hash::make($request->password)
+            ]);
+
+            DB::table('password_resets')->where('email', $request->email)->delete();
+
+            return response()->json(['message' => 'Password reset successfully']);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while resetting password'
+            ], 500);
         }
     }
 }
