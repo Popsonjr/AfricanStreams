@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\VerificationEmail;
 use App\Models\Admin;
 use Exception;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Str;
 
 class AdminAuthController extends Controller
 {
@@ -171,6 +174,75 @@ class AdminAuthController extends Controller
             $token = JWTAuth::fromUser($admin);
             return response()->json(['user' => $admin, 'token' => $token]);
 
+        } catch (Exception $th) {
+            return response()->json(['Error' => $th->getMessage()], 500);
+        }
+    }
+
+    /**
+     * verifyEmail
+     *
+     * @param  mixed $request
+     * @return void
+     */
+    public function verifyEmail(Request $request) {
+        try {
+            $request->validate([
+                'token' => 'required'
+            ]);
+
+            $admin = Admin::where('verification_token', $request->token)->first();
+
+            if (!$admin) {
+                return response()->json(['message' => 'Invalid token'], 400);
+            }
+
+            $admin->update([
+                'email_verified_at' => now(),
+                'verification_token' => null,
+            ]);
+
+            return response()->json(['message' => 'Email verified successfully']);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while verifying email'
+            ], 500);
+        }
+    }
+    
+    /**
+     * resendVerificationEmail
+     *
+     * @param  mixed $request
+     * @return void
+     */
+    public function resendVerificationEmail(Request $request) {
+        try {
+            $request->validate([
+                'email' => 'required|email',
+            ]);
+
+            $admin = Admin::where('email', $request->email)->first();
+
+            if (!$admin) {
+                return response()->json(['message' => 'Admin user not found'], 404);
+            }
+        
+            if ($admin->email_verified_at) {
+                return response()->json(['message' => 'Email is already verified'], 400);
+            }
+
+            $token = Str::random(64);
+            $admin->update([
+                'verification_token' => $token
+            ]);
+
+            Mail::to($admin->email)->queue(new VerificationEmail($token));
+
+            return response()->json([
+                'message' => 'Verification email sent',
+            ]);
         } catch (Exception $th) {
             return response()->json(['Error' => $th->getMessage()], 500);
         }
