@@ -7,6 +7,7 @@ use App\Http\Controllers\EpisodeController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -66,14 +67,35 @@ Route::prefix('admin')->group(function () {
     });
 });
 
+//Route For Series
+Route::prefix('series')->group(function() {
+    Route::get('/', [SeriesController::class, 'index']);
+    Route::get('/{series}', [SeriesController::class, 'show']);
+    Route::middleware('auth:admin')->group(function () {
+        Route::post('/', [SeriesController::class, 'store']);
+        Route::put('/{series}', [SeriesController::class, 'update']);
+        Route::delete('/{series}', [SeriesController::class, 'destroy']);
+    });
+});
 
+//Route For Seasons within a Series
+Route::prefix('series/{series}')->group(function() {
+    Route::get('/seasons', [SeasonController::class, 'index']);
+    Route::get('/seasons/{season}', [SeasonController::class, 'show']);
+    Route::middleware('auth:admin')->group(function () {
+        Route::post('/seasons', [SeasonController::class, 'store']);
+        Route::put('/seasons/{season}', [SeasonController::class, 'update']);
+        Route::delete('/seasons/{season}', [SeasonController::class, 'destroy']);
+    });
+});
 
-Route::middleware('auth:api')->group(function () {
-    Route::get('/series/{id}/seasons', [SeasonController::class, 'index']);
-    Route::get('/series/{id}/seasons/{seasonNumber}', [SeasonController::class, 'show']);
-    Route::post('/series/{id}/seasons', [SeasonController::class, 'store']);
-    
-    Route::post('/series/{id}/seasons/{seasonNumber}/episodes', [EpisodeController::class, 'store']);
-
-    Route::post('/uploads', [UploadController::class, 'upload']);
+//Route For Episodes within a Season
+Route::prefix('seasons/{season}')->group(function() {
+    Route::get('/episodes', [EpisodeController::class, 'index']);
+    Route::get('/episodes/{episode}', [EpisodeController::class, 'show']);
+    Route::middleware('auth:admin')->group(function () {
+        Route::post('/episodes', [EpisodeController::class, 'store']);
+        Route::put('/episodes/{episode}', [EpisodeController::class, 'update']);
+        Route::delete('/episodes/{episode}', [EpisodeController::class, 'destroy']);
+    });
 });
