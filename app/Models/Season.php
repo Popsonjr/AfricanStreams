@@ -10,11 +10,11 @@ class Season extends Model
     use HasFactory;
 
     protected $fillable = [
-        'series_id', 'season_number'
+        'series_id', 'season_number', 'title'
     ];
 
     public function series() {
-        return $this->belongsTo(Movie::class, 'series_id');
+        return $this->belongsTo(Series::class);
     }
 
     public function episodes() {
