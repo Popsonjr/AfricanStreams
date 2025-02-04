@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -13,7 +14,14 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return response()->json(Category::all(), 200);
+        try {
+            return response()->json(Category::all(), 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error getting categories',
+            ], 500);
+        } 
     }
 
     /**
@@ -21,16 +29,23 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255|unique:categories,name'
+            ]);
 
-        $category = Category::create([
-            'name' => $validated['name'],
-            'slug' => str()->slug($validated['name']),
-        ]);
+            $category = Category::create([
+                'name' => $validated['name'],
+                'slug' => str()->slug($validated['name']),
+            ]);
 
-        return response()->json($category, 201);
+            return response()->json($category, 201);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error creating new category',
+            ], 500);
+        }
     }
 
     /**
@@ -38,7 +53,14 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        return response()->json($category, 200);
+        try {
+            return response()->json($category, 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error getting category',
+            ], 500);
+        }
     }
 
     /**
@@ -46,21 +68,28 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('categories')->ignore($category->id)
-            ]
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('categories')->ignore($category->id)
+                ]
+            ]);
 
-        $category->update([
-            'name' => $validated['name'],
-            'slug' => str()->slug($validated['name'])
-        ]);
+            $category->update([
+                'name' => $validated['name'],
+                'slug' => str()->slug($validated['name'])
+            ]);
 
-        return response()->json($category, 200);
+            return response()->json($category, 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error updating category',
+            ], 500);
+        }
     }
 
     /**
@@ -68,7 +97,14 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        $category->delete();
-        return response()->json(['message' => 'Category deleted successfully'], 200);
+        try {
+            $category->delete();
+            return response()->json(['message' => 'Category deleted successfully'], 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error deleting category',
+            ], 500);
+        }
     }
 }
