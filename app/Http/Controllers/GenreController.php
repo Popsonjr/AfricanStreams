@@ -14,7 +14,14 @@ class GenreController extends Controller
      */
     public function index()
     {
-        return response()->json(Genre::all(), 200);
+        try {
+            return response()->json(Genre::all(), 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while getting genres'
+            ], 500);
+        }
     }
 
     /**
@@ -22,15 +29,22 @@ class GenreController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:genres,name'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255|unique:genres,name'
+            ]);
 
-        $genre = Genre::create([
-            'name' => $validated['name'],
-            'slug' => str()->slug($validated['name'])
-        ]);
-        return response()->json($genre, 201);
+            $genre = Genre::create([
+                'name' => $validated['name'],
+                'slug' => str()->slug($validated['name'])
+            ]);
+            return response()->json($genre, 201);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while creating genre'
+            ], 500);
+        }
     }
 
     /**
@@ -53,21 +67,27 @@ class GenreController extends Controller
      */
     public function update(Request $request, Genre $genre)
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('genres')->ignore($genre->id)
-            ]
+        try {
+            $validated = $request->validate([
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('genres')->ignore($genre->id)
+                ]
+                ]);
+            
+            $genre->update([
+                'name' => $validated['name'],
+                'slug' => str()->slug($validated['name'])
             ]);
-        
-
-        $genre->update([
-            'name' => $validated['name'],
-            'slug' => str()->slug($validated['name'])
-        ]);
-        return response()->json($genre, 200);
+            return response()->json($genre, 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while updating genre'
+            ], 500);
+        }
     }
 
     /**
@@ -75,7 +95,14 @@ class GenreController extends Controller
      */
     public function destroy(Genre $genre)
     {
-        $genre->delete();
-        return response()->json(['message' => 'Genre deleted successfully'], 200);
+        try {
+            $genre->delete();
+            return response()->json(['message' => 'Genre deleted successfully'], 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while deleting genre'
+            ], 500);
+        }
     }
 }
