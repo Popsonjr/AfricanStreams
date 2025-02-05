@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\HelperTrait;
+
 use App\Models\Series;
 use Exception;
 use Illuminate\Http\Request;
@@ -38,8 +40,9 @@ class SeriesController extends Controller
             $data = $request->only(['title', 'description', 'cover_image']);
 
             if($request->hasFile('cover_image')) {
-                
+                $data['cover_image'] = $this->storeFile($request->file('cover_image'), 'series/cover');
             }
+            $series = Series::create($data);
         } catch (Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
