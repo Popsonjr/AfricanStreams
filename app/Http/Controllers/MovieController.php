@@ -85,6 +85,9 @@ class MovieController extends Controller
     public function store(StoreMovieRequest $request) {
         try {
             $data = $request->validated();
+            if ($request->hasFile('banner_image')) {
+                $data['banner_image'] = $this->storeFile($request->file('banner_image'),'movies/banner');
+            }
             if ($request->hasFile('cover_image')) {
                 $data['cover_image'] = $this->storeFile($request->file('cover_image'),'movies/covers');
             }

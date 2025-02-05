@@ -9,10 +9,14 @@ class Series extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'cover_image'];
+    protected $fillable = ['title', 'description', 'cover_image', 'banner_image'];
 
+    public function getBannerImageAttribute($value) {
+        return $value ? config('app.url') . '/public' . $value : null;
+    }
+    
     public function getCoverImageAttribute($value) {
-        return $value ? config('app.url') . $value : null;
+        return $value ? config('app.url') . '/public' . $value : null;
     }
 
     public function seasons() {

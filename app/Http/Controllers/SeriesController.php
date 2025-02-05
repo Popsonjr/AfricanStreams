@@ -31,13 +31,17 @@ class SeriesController extends BaseController
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096'
+                'banner_image' => 'nullable|image|mimes:jpeg,png,jpg|max:40960',
+                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:40960'
             ]);
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
             $data = $request->only(['title', 'description', 'cover_image']);
 
+            if ($request->hasFile('banner_image')) {
+                $data['banner_image'] = $this->storeFile($request->file('banner_image'),'series/banner');
+            }
             if($request->hasFile('cover_image')) {
                 $data['cover_image'] = $this->storeFile($request->file('cover_image'), 'series/cover');
             }
@@ -61,7 +65,8 @@ class SeriesController extends BaseController
             $validator = Validator::make($request->all(), [
                 'title' => 'sometimes|string|max:255',
                 'description' => 'nullable|string',
-                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096'
+                'banner_image' => 'nullable|image|mimes:jpeg,png,jpg|max:40960',
+                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:40960'
             ]);
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);

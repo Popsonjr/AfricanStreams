@@ -10,7 +10,7 @@ class Episode extends Model
     use HasFactory;
 
     protected $fillable = [
-        'season_id', 'title', 'description', 'duration', 'release_date', 'episode_number', 'cover_image', 'standard_image', 'thumbnail_image', 'movie_file'
+        'season_id', 'title', 'description', 'duration', 'release_date', 'episode_number', 'banner_image', 'cover_image', 'standard_image', 'thumbnail_image', 'movie_file'
     ];
 
     public function season() {

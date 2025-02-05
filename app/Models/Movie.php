@@ -10,25 +10,33 @@ class Movie extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'description', 'release_date', 'duration', 'cast', 'genre_id', 'trailer_uri', 'cover_image', 'standard_image', 'thumbnail_image', 'movie_file', 'type'
+        'title', 'description', 'release_date', 'duration', 'cast', 'genre_id', 'trailer_uri', 'banner_image', 'cover_image', 'standard_image', 'thumbnail_image', 'movie_file', 'type'
     ];
 
     // protected $appends = ['']
 
+    public  function getTrailerUriAttribute($value) {
+        return $value ? $value . '?autoplay=1&mute=1&controls=0&loop=1' : null;
+    }
+
+    public function getBannerImageAttribute($value) {
+        return $value ? config('app.url') . '/public' . $value : null;
+    }
+
     public function getCoverImageAttribute($value) {
-        return $value ? config('app.url') . $value : null;
+        return $value ? config('app.url') . '/public' . $value : null;
     }
 
     public function getStandardImageAttribute($value) {
-        return $value ? config('app.url') . $value : null;
+        return $value ? config('app.url') . '/public' .  $value : null;
     }
 
     public function getThumbnailImageAttribute($value) {
-        return $value ? config('app.url') . $value : null;
+        return $value ? config('app.url') . '/public' .  $value : null;
     }
 
     public function getMovieFileAttribute($value) {
-        return $value ? config('app.url') . $value : null;
+        return $value ? config('app.url') . '/public' .  $value : null;
     }
 
     public function genre() {

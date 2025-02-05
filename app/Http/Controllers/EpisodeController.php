@@ -16,6 +16,7 @@ class EpisodeController extends Controller
             'duration' => 'required|string',
             'release_date' => 'nullable|date',
             'episode_number' => 'required|integer',
+            'banner_image' => 'nullable|string',
             'cover_image' => 'nullable|string',
             'standard_image' => 'nullable|string',
             'thumbnail_image' => 'nullable|string',
