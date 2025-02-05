@@ -14,16 +14,28 @@ return new class extends Migration
         Schema::create('movies', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('description')->nullable();
+            $table->text('overview')->nullable();
+            $table->string('poster_path')->nullable();
+            $table->string('backdrop_path')->nullable();
             $table->date('release_date')->nullable();
-            $table->string('duration')->nullable();
-            $table->string('cast')->nullable();
-            $table->foreignId('genre_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('trailer_uri')->nullable();
-            $table->string('cover_image')->nullable();
-            $table->string('standard_image')->nullable();
-            $table->string('thumbnail_image')->nullable();
-            $table->enum('type', ['movie', 'series']);
+            $table->float('vote_average')->default(0);
+            $table->integer('vote_count')->default(0);
+            $table->boolean('adult')->default(false);
+            $table->string('original_language')->nullable();
+            $table->string('original_title')->nullable();
+            $table->integer('runtime')->nullable();
+            $table->string('status')->nullable();
+            $table->json('production_companies')->nullable(); // Array of {id, name, logo_path, origin_country}
+            $table->json('production_countries')->nullable();
+            $table->string('tagline')->nullable();
+            $table->bigInteger('budget')->nullable();
+            $table->bigInteger('revenue')->nullable();
+            $table->string('homepage')->nullable();
+            $table->json('belongs_to_collection')->nullable();
+            $table->json('spoken_languages')->nullable();
+            $table->string('imdb_id')->nullable();
+            $table->float('popularity')->default(0);
+            $table->boolean('video')->default(false);
             $table->timestamps();
         });
     }

@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('genres', function (Blueprint $table) {
+        Schema::create('ratings', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->morphs('rateable'); // Polymorphic: movie_id or tv_show_id
+            $table->float('value')->default(0);
             $table->timestamps();
         });
     }
@@ -23,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('genres');
+        Schema::dropIfExists('ratings');
     }
 };

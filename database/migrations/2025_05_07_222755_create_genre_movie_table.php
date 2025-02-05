@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
-            $table->dropColumn('name');
+        // Movie-Genre Pivot
+        Schema::create('genre_movie', function (Blueprint $table) {
+            $table->foreignId('movie_id')->constrained()->onDelete('cascade');
+            $table->foreignId('genre_id')->constrained()->onDelete('cascade');
+            $table->primary(['movie_id', 'genre_id']);
         });
     }
 
@@ -23,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('name');
-        });
+        Schema::dropIfExists('genre_movie');
     }
 };

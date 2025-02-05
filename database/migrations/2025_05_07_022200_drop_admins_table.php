@@ -11,17 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('admins', function (Blueprint $table) {
-            $table->id();
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->string('verification_token')->nullable()->index();
-            $table->timestamps();
-        });
+        Schema::dropIfExists('admins');
     }
 
     /**
@@ -29,6 +19,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('admins');
+        Schema::create('admins', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->string('verification_token')->nullable()->index();
+            $table->timestamps();
+        });
     }
 };

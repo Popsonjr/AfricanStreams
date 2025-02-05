@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        // User Favorites (Movies/TV)
+        Schema::create('favorites', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->morphs('favoritable'); // Polymorphic: movie_id or tv_show_id
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('favorites');
     }
 };

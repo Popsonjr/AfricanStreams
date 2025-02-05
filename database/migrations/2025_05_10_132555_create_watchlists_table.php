@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('movie_category', function (Blueprint $table) {
+        Schema::create('watchlists', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('movie_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->morphs('watchable'); // Polymorphic: movie_id or tv_show_id
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('movie_category');
+        Schema::dropIfExists('watchlists');
     }
 };
