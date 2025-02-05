@@ -9,8 +9,10 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class SeriesController extends Controller
+class SeriesController extends BaseController
 {
+    use HelperTrait;
+    
     public function index(Request $request) {
         try {
         $query = Series::with('seasons.episodes')->get();
@@ -18,18 +20,15 @@ class SeriesController extends Controller
             $query->where('title', 'LIKE', '%' . $request->search . '%');
         }
         $series = $query->paginate(10);
-        return response()->json($series);
+        return $this->successResponse($series, 'All series retrieved successfully');
         } catch (Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-                'error' => 'Error fetching all series'
-            ]);
+            return $this->errorResponse($e->getMessage(), 'Error fetching all series');
         }
     }
 
     public function store(Request $request) {
         try {
-            $validator = Validator::make($request->all()), [
+            $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096'
@@ -43,11 +42,17 @@ class SeriesController extends Controller
                 $data['cover_image'] = $this->storeFile($request->file('cover_image'), 'series/cover');
             }
             $series = Series::create($data);
+            return $this->successResponse($series, 'Series created successfully', 201);
         } catch (Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-                'error' => 'Error storing new series'
-            ]);
+            return $this->errorResponse($e->getMessage(), 'Error storing new series');
+        }
+    } 
+
+    public function show(Request $request, Series $series) {
+        try {
+            Series::find($series);
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 'Error fetching series');
         }
     } 
 
@@ -55,10 +60,7 @@ class SeriesController extends Controller
         try {
 
         } catch (Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-                'error' => 'Error fetching series'
-            ]);
+            return $this->errorResponse($e->getMessage(), 'Error fetching series');
         }
     } 
 
@@ -66,21 +68,7 @@ class SeriesController extends Controller
         try {
 
         } catch (Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-                'error' => 'Error fetching series'
-            ]);
+            return $this->errorResponse($e->getMessage(), 'Error fetching series');
         }
-    } 
-
-    public function show(Request $request, Series $series) {
-        try {
-
-        } catch (Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-                'error' => 'Error fetching series'
-            ]);
-        }
-    } 
+    }
 }
