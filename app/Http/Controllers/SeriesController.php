@@ -50,25 +50,42 @@ class SeriesController extends BaseController
 
     public function show(Request $request, Series $series) {
         try {
-            Series::find($series);
+            $this->successResponse($series->load('seasons.episodes'), 'Series retrieved successfully');
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 'Error fetching series');
         }
     } 
 
-    public function show(Request $request, Series $series) {
+    public function update(Request $request, Series $series) {
         try {
+            $validator = Validator::make($request->all(), [
+                'title' => 'sometimes|string|max:255',
+                'description' => 'nullable|string',
+                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096'
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
 
+            $data = array_filter($request->only(['title', 'description']), fn($value) => !is_null($value));
+
+            if($request->hasFile('cover_image')) {
+                $data['cover_image'] = $this->storeFile($request->file('cover_image'), 'series/cover');
+            }
+
+            $series->update();
+            return $this->successResponse($series, 'Series updated successfully');
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 'Error fetching series');
+            return $this->errorResponse($e->getMessage(), 'Error updating series');
         }
     } 
 
-    public function show(Request $request, Series $series) {
+    public function destroy(Series $series) {
         try {
-
+            $series->delete();
+            return $this->successResponse('', 'Series deleted successfully');
         } catch (Exception $e) {
-            return $this->errorResponse($e->getMessage(), 'Error fetching series');
+            return $this->errorResponse($e->getMessage(), 'Error deleting series');
         }
     }
 }
