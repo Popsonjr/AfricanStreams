@@ -9,27 +9,28 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
         Schema::create('episodes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('season_id')->constrained()->onDelete('cascade');
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->string('duration')->nullable();
-            $table->date('release_date')->nullable();
             $table->integer('episode_number');
-            $table->string('cover_image')->nullable();
-            $table->string('standard_image')->nullable();
-            $table->string('thumbnail_image')->nullable();
+            $table->integer('season_number');
+            $table->string('name')->nullable();
+            $table->text('overview')->nullable();
+            $table->string('still_path')->nullable();
+            $table->date('air_date')->nullable();
+            $table->integer('runtime')->nullable();
+            $table->float('vote_average')->default(0);
+            $table->integer('vote_count')->default(0);
+            $table->string('production_code')->nullable();
+            $table->json('crew')->nullable();
+            $table->json('guest_stars')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('episodes');
     }

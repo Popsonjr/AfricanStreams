@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('related_movies', function (Blueprint $table) {
+        // Searches (for indexing)
+        Schema::create('searches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('movie_id')->constrained()->onDelete('cascade');
-            $table->foreignId('related_movie_id')->constrained('movies')->onDelete('cascade');
+            $table->string('query');
+            $table->morphs('searchable'); // Polymorphic: movie_id, tv_show_id, person_id
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('related_movies');
+        Schema::dropIfExists('searches');
     }
 };
