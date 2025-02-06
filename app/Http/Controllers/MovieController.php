@@ -44,7 +44,7 @@ class MovieController extends Controller
                 $query->where('type', $request->type);
             }
 
-            $movies = $query->paginate(10);
+            $movies = $query->paginate(100);
             return response()->json($movies);
         } catch (Exception $e) {
             return response()->json([

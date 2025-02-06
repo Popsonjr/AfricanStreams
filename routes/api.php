@@ -11,6 +11,8 @@ use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
+use Illuminate\Http\Request;
+
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
@@ -99,3 +101,14 @@ Route::prefix('seasons/{season}')->group(function() {
         Route::delete('/episodes/{episode}', [EpisodeController::class, 'destroy']);
     });
 });
+
+
+
+// Route::options('{any}', function (Request $request) {
+//     return response()->noContent(204)
+//         ->withHeaders([
+//             'Access-Control-Allow-Origin' => $request->header('Origin') ?? '*',
+//             'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+//             'Access-Control-Allow-Headers' => $request->header('Access-Control-Request-Headers') ?? 'Origin, Content-Type, Accept, Authorization',
+//         ]);
+// })->where('any', '.*');

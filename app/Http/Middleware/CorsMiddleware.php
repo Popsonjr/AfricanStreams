@@ -15,15 +15,33 @@ class CorsMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // $response = $next($request);
+
+        // $response->headers->set('Access-Control-Allow-Origin', '*');
+        // $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        // $response->headers->set('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, X-Requested-With');
+
+        // if ($request->isMethod('OPTIONS')) {
+        //     return response()->json('OK', 200);
+        // }
+        // return $response;
+
+        // Handle preflight requests immediately
+        if ($request->isMethod('OPTIONS')) {
+            return response()->json('OK', 200, [
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers' => 'Origin, Content-Type, Accept, Authorization, X-Requested-With',
+            ]);
+        }
+
+        // Proceed with the request for other methods
         $response = $next($request);
 
         $response->headers->set('Access-Control-Allow-Origin', '*');
         $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
         $response->headers->set('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, X-Requested-With');
 
-        if ($request->isMethod('OPTIONS')) {
-            return response()->json('OK', 200);
-        }
         return $response;
     }
 }

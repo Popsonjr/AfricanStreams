@@ -27,20 +27,23 @@ class AdminAuthController extends Controller
     public function register(Request $request) {
         try {
             $request->validate([
-                'name' => 'required|String|max:255',
+                'first_name' => 'required|String|max:255',
+                'last_name' => 'required|String|max:255',
                 'email' => 'required|email|unique:admins',
                 'password' => 'required|String|min:6',
             ]);
 
             $admin = Admin::create([
-                'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
+            return response()->json(compact('admin'), 201);
 
-            $token = JWTAuth::fromUser($admin);
+            // $token = JWTAuth::fromUser($admin);
             // return response()->json(['user' => $user, 'token' => $token], 201);
-            return response()->json(compact('admin','token'), 201);
+            // return response()->json(compact('admin','token'), 201);
         } catch (Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),

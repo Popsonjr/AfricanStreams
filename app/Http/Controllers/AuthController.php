@@ -29,20 +29,23 @@ class AuthController extends Controller
     public function register(Request $request) {
         try {
             $request->validate([
-                'name' => 'required|String|max:255',
+                'first_name' => 'required|String|max:255',
+                'last_name' => 'required|String|max:255',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|String|min:6',
             ]);
 
             $user = User::create([
-                'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
+            return response()->json(compact('user'), 201);
 
-            $token = JWTAuth::fromUser($user);
+            // $token = JWTAuth::fromUser($user);
             // return response()->json(['user' => $user, 'token' => $token], 201);
-            return response()->json(compact('user','token'), 201);
+            // return response()->json(compact('user','token'), 201);
         } catch (Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -278,7 +281,7 @@ class AuthController extends Controller
             ]);
             Mail::to($request->email)->queue(new ResetPasswordEmail($token));
 
-            return response()->json(['message' => 'Reset link sent']);
+            return response()->json(['message' => 'Reset link has been sent to your email.']);
         } catch (Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
