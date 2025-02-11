@@ -97,4 +97,35 @@ class TvController extends Controller
         ]);
     }
 
+    public function onTheAir(Request $request)
+    {
+        $tvShows = TvShow::where('status', 'Returning Series')
+            ->where('last_air_date', '>=', now()->subWeek())
+            ->orderBy('last_air_date', 'desc')
+            ->with(['genres'])
+            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $tvShows->currentPage(),
+            'results' => TvShowResource::collection($tvShows),
+            'total_pages' => $tvShows->lastPage(),
+            'total_results' => $tvShows->total(),
+        ]);
+    }
+
+    public function topRated(Request $request)
+    {
+        $tvShows = TvShow::where('vote_count', '>', 100)
+            ->orderBy('vote_average', 'desc')
+            ->with(['genres'])
+            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $tvShows->currentPage(),
+            'results' => TvShowResource::collection($tvShows),
+            'total_pages' => $tvShows->lastPage(),
+            'total_results' => $tvShows->total(),
+        ]);
+    }
+
 }
