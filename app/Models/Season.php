@@ -10,14 +10,19 @@ class Season extends Model
     use HasFactory;
 
     protected $fillable = [
-        'series_id', 'season_number', 'title'
+        'tv_show_id', 'season_number', 'name', 'overview', 'poster_path',
+        'air_date', 'episode_count', 'vote_average', '_id',
     ];
 
-    public function series() {
-        return $this->belongsTo(Series::class);
+    public function tvShow() {
+        return $this->belongsTo(TvShow::class);
     }
 
     public function episodes() {
         return $this->hasMany(Episode::class);
+    }
+
+    public function credits() {
+        return $this->morphMany(Credit::class, 'creditable');
     }
 }

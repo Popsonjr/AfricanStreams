@@ -10,10 +10,28 @@ class Episode extends Model
     use HasFactory;
 
     protected $fillable = [
-        'season_id', 'title', 'description', 'duration', 'release_date', 'episode_number', 'banner_image', 'cover_image', 'standard_image', 'thumbnail_image', 'movie_file'
+        'season_id', 'episode_number', 'season_number', 'name', 'overview',
+        'still_path', 'air_date', 'runtime', 'vote_average', 'vote_count',
+        'production_code', 'crew', 'guest_stars',
     ];
 
-    public function season() {
+    protected $casts = [
+        'crew' => 'array',
+        'guest_stars' => 'array',
+    ];
+
+    public function season()
+    {
         return $this->belongsTo(Season::class);
+    }
+
+    public function credits()
+    {
+        return $this->morphMany(Credit::class, 'creditable');
+    }
+
+    public function ratings()
+    {
+        return $this->morphMany(Rating::class, 'rateable');
     }
 }
