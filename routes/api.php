@@ -7,8 +7,10 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EpisodeController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\SeriesController;
+use App\Http\Controllers\TvController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,11 +52,11 @@ Route::prefix('auth')->group(function () {
 Route::prefix('')->group(function () {
     // Movie Endpoints
     Route::get('/movie/{id}', [MovieController::class, 'details']);
-    Route::get('/movie/{id}/account_states', [MovieController::class, 'accountStates'])->middleware('auth.session');
+    Route::get('/movie/{id}/account_states', [MovieController::class, 'accountStates'])->middleware('auth:api');
     Route::get('/movie/{id}/credits', [MovieController::class, 'credits']);
     Route::get('/movie/{id}/reviews', [MovieController::class, 'reviews']);
-    Route::post('/movie/{id}/rating', [MovieController::class, 'rate'])->middleware('auth.session');
-    Route::delete('/movie/{id}/rating', [MovieController::class, 'deleteRating'])->middleware('auth.session');
+    Route::post('/movie/{id}/rating', [MovieController::class, 'rate'])->middleware('auth:api');
+    Route::delete('/movie/{id}/rating', [MovieController::class, 'deleteRating'])->middleware('auth:api');
     Route::get('/movie/popular', [MovieController::class, 'popular']);
     Route::get('/movie/now_playing', [MovieController::class, 'nowPlaying']);
     Route::get('/movie/upcoming', [MovieController::class, 'upcoming']);
@@ -62,11 +64,11 @@ Route::prefix('')->group(function () {
 
     // TV Show Endpoints
     Route::get('/tv/{id}', [TvController::class, 'details']);
-    Route::get('/tv/{id}/account_states', [TvController::class, 'accountStates'])->middleware('auth.session');
+    Route::get('/tv/{id}/account_states', [TvController::class, 'accountStates'])->middleware('auth:api');
     Route::get('/tv/{id}/credits', [TvController::class, 'credits']);
     Route::get('/tv/{id}/reviews', [TvController::class, 'reviews']);
-    Route::post('/tv/{id}/rating', [TvController::class, 'rate'])->middleware('auth.session');
-    Route::delete('/tv/{id}/rating', [TvController::class, 'deleteRating'])->middleware('auth.session');
+    Route::post('/tv/{id}/rating', [TvController::class, 'rate'])->middleware('auth:api');
+    Route::delete('/tv/{id}/rating', [TvController::class, 'deleteRating'])->middleware('auth:api');
     Route::get('/tv/popular', [TvController::class, 'popular']);
     Route::get('/tv/airing_today', [TvController::class, 'airingToday']);
     Route::get('/tv/on_the_air', [TvController::class, 'onTheAir']);
@@ -74,15 +76,15 @@ Route::prefix('')->group(function () {
 
     // Season Endpoints
     Route::get('/tv/{series_id}/season/{season_number}', [SeasonController::class, 'details']);
-    Route::get('/tv/{series_id}/season/{season_number}/account_states', [SeasonController::class, 'accountStates'])->middleware('auth.session');
+    Route::get('/tv/{series_id}/season/{season_number}/account_states', [SeasonController::class, 'accountStates'])->middleware('auth:api');
     Route::get('/tv/{series_id}/season/{season_number}/credits', [SeasonController::class, 'credits']);
 
     // Episode Endpoints
     Route::get('/tv/{series_id}/season/{season_number}/episode/{episode_number}', [EpisodeController::class, 'details']);
-    Route::get('/tv/{series_id}/season/{season_number}/episode/{episode_number}/account_states', [EpisodeController::class, 'accountStates'])->middleware('auth.session');
+    Route::get('/tv/{series_id}/season/{season_number}/episode/{episode_number}/account_states', [EpisodeController::class, 'accountStates'])->middleware('auth:api');
     Route::get('/tv/{series_id}/season/{season_number}/episode/{episode_number}/credits', [EpisodeController::class, 'credits']);
-    Route::post('/tv/{series_id}/season/{season_number}/episode/{episode_number}/rating', [EpisodeController::class, 'rate'])->middleware('auth.session');
-    Route::delete('/tv/{series_id}/season/{season_number}/episode/{episode_number}/rating', [EpisodeController::class, 'deleteRating'])->middleware('auth.session');
+    Route::post('/tv/{series_id}/season/{season_number}/episode/{episode_number}/rating', [EpisodeController::class, 'rate'])->middleware('auth:api');
+    Route::delete('/tv/{series_id}/season/{season_number}/episode/{episode_number}/rating', [EpisodeController::class, 'deleteRating'])->middleware('auth:api');
 
     // Review Endpoints
     Route::get('/review/{review_id}', [ReviewController::class, 'details']);
