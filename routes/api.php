@@ -9,11 +9,15 @@ Route::prefix('auth')->group(function () {
     Route::post('/email/verify', [AuthController::class, 'verifyEmail']);
     Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::post('/me', [AuthController::class, 'me'])->middleware('auth::api');
+    Route::post('/me', [AuthController::class, 'me'])->middleware('auth:api');
+    Route::post('/get-user', [AuthController::class, 'getUser']);
 
-    Route::get('/google/redirect', [AuthController::class, 'redirectToGoogle']);
-    Route::get('google/callback', [AuthController::class, 'handleGoogleCallback']);
+    // Route::middleware(['web'])->group(function() {
+    //     Route::get('/google/redirect', [AuthController::class, 'redirectToGoogle']);
+    //     Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
+    // });
     
-    Route::get('facebook/redirect', AuthController::class, 'redirectToFacebook');
-    Route::get('facebook/callback', AuthController::class, 'handleFacebookCallback');
+    
+    // Route::get('facebook/redirect', AuthController::class, 'redirectToFacebook');
+    // Route::get('facebook/callback', AuthController::class, 'handleFacebookCallback');
 });
