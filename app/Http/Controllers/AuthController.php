@@ -285,7 +285,7 @@ class AuthController extends Controller
     public function changePassword(Request $request) {
         $request->validate([
            'current_password' => 'required',
-           'new_password' => 'requied|min:6' 
+           'password' => 'required|min:6|confirmed', 
         ]);
 
         $user = JWTAuth::user();
