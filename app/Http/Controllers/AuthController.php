@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ResetPasswordEmail;
 use App\Mail\VerificationEmail;
 use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
+// use Tymon\JWTAuth\Contracts\Providers\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -226,5 +230,74 @@ class AuthController extends Controller
         } catch (Exception $th) {
             return response()->json(['Error' => $th->getMessage()], 500);
         }
+    }
+
+    public function sendResetLink(Request $request) {
+        $request->validate(['email' => 'required|email|exists:users,email']);
+
+        $token = Str::random(64);
+        DB::table('password_resets')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => Hash::make($token),
+                // 'token' => $token,
+                'created_at' => now()
+            ]
+        );
+
+        Log::info('send reset link ', [
+            'Token' => $token,
+            'Hashed Token' => Hash::make($token)
+        ]);
+        Mail::to($request->email)->queue(new ResetPasswordEmail($token));
+
+        return response()->json(['message' => 'Reset link sent']);
+    }
+
+    public function resetPassword(Request $request) {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        $record = DB::table('password_resets')
+        ->where('email', $request->email)
+        ->first();
+
+        if (!$record) {
+            return response()->json(['message' => 'Invalid email or token'], 400);
+        }
+        
+        if (!Hash::check($request->token, $record->token)) {
+            return response()->json(['message' => 'Invalid token'], 400);
+        }
+
+        User::where('email', $request->email)->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        DB::table('password_resets')->where('email', $request->email)->delete();
+
+        return response()->json(['message' => 'Password reset successfully']);
+    }
+
+    public function changePassword(Request $request) {
+        $request->validate([
+           'current_password' => 'required',
+           'new_password' => 'requied|min:6' 
+        ]);
+
+        $user = JWTAuth::user();
+
+        if(!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Incorrect current password', 400]);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json(['message' => 'Password chnaged successfully']);
     }
 }
