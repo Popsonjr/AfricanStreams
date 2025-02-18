@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\FavoriteResource;
 use App\Http\Resources\ListResource;
+use App\Http\Resources\RatingResource;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\WatchlistResource;
 use App\Models\Favorite;
 use App\Models\ListModel;
 use App\Models\Movie;
+use App\Models\Rating;
 use App\Models\TvShow;
+use App\Models\Watchlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -85,5 +89,107 @@ class AccountController extends Controller
             'status_code' => 1,
             'status_message' => 'Success'
         ]);
+    }
+
+    public function ratedMovies(Request $request) {
+        $ratings = Rating::where('user_id', Auth::id())
+            ->where('rateable_type', Movie::class)
+            ->with('rateable')
+            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $ratings->currentPage(),
+            'results' => RatingResource::collection($ratings),
+            'total_pages' => $ratings->lastPage(),
+            'total_results' => $ratings->total(),
+        ]);
+    }
+
+    public function ratedTv(Request $request)
+    {
+        $ratings = Rating::where('user_id', Auth::id())
+            ->where('rateable_type', TvShow::class)
+            ->with('rateable')
+            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $ratings->currentPage(),
+            'results' => RatingResource::collection($ratings),
+            'total_pages' => $ratings->lastPage(),
+            'total_results' => $ratings->total(),
+        ]);
+    }
+
+    public function ratedEpisodes(Request $request)
+    {
+        $ratings = Rating::where('user_id', Auth::id())
+            ->where('rateable_type', \App\Models\Episode::class)
+            ->with('rateable')
+            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $ratings->currentPage(),
+            'results' => RatingResource::collection($ratings),
+            'total_pages' => $ratings->lastPage(),
+            'total_results' => $ratings->total(),
+        ]);
+    }
+
+    public function watchlistMovies(Request $request){
+        $watchlists = Watchlist::where('user_id', Auth::id())
+        ->where('watchable_type', Movie::class)
+        ->with('watchable')
+        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $watchlists->currentPage(),
+            'results' => WatchlistResource::collection($watchlists),
+            'total_pages' => $watchlists->lastPage(),
+            'total_results' => $watchlists->total(),
+        ]);
+    } 
+
+    public function watchlistTv(Request $request)
+    {
+        $watchlists = Watchlist::where('user_id', Auth::id())
+            ->where('watchable_type', TvShow::class)
+            ->with('watchable')
+            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $watchlists->currentPage(),
+            'results' => WatchlistResource::collection($watchlists),
+            'total_pages' => $watchlists->lastPage(),
+            'total_results' => $watchlists->total(),
+        ]);
+    }
+
+    public function addToWatchlist(Request $request)
+    {
+        $request->validate([
+            'media_type' => 'required|in:movie,tv',
+            'media_id' => 'required|integer',
+            'watchlist' => 'required|boolean',
+        ]);
+
+        $model = $request->media_type === 'movie' ? Movie::class : TvShow::class;
+        $media = $model::findOrFail($request->media_id);
+
+        if ($request->watchlist) {
+            Watchlist::updateOrCreate(
+                [
+                    'user_id' => Auth::id(),
+                    'watchable_id' => $media->id,
+                    'watchable_type' => $model,
+                ]
+            );
+        } else {
+            Watchlist::where('user_id', Auth::id())
+                ->where('watchable_id', $media->id)
+                ->where('watchable_type', $model)
+                ->delete();
+        }
+
+        return response()->json(['status_code' => 1, 'status_message' => 'Success']);
     }
 }
