@@ -9,8 +9,10 @@ use App\Http\Resources\CreditResource;
 use App\Http\Resources\MovieResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Movie;
+use App\Models\Rating;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -49,6 +51,53 @@ class MovieController extends Controller
             'results' => ReviewResource::collection($reviews),
             'total_pages' => $reviews->lastPage(),
             'total_results' => $reviews->total(),
+        ]);
+    }
+
+    public function rate(Request $request, $id) {
+        $request->validate([
+            'value' => 'required|numeric|min:0.5|10',
+        ]);
+
+        $movie = Movie::findOrFail($id);
+
+        Rating::updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'rateable_id' => $movie->id,
+                'rateable_type' => Movie::class,
+            ],
+            ['value' => $request->value]
+        );
+
+        return response()->json([
+            'status_code' => 1,
+            'status_message' => 'Success'
+        ]);
+    }
+
+    public function deleteRating(Request $request, $id)
+    {
+        $movie = Movie::findOrFail($id);
+
+        Rating::where('user_id', Auth::id())
+            ->where('rateable_id', $movie->id)
+            ->where('rateable_type', Movie::class)
+            ->delete();
+
+        return response()->json(['status_code' => 1, 'status_message' => 'Success']);
+    }
+
+    public function popular(Request $request) {
+        $movies = Movie::orderBy('popularity', 'desc')
+        ->with(['genres'])
+        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $movies->currentPage(),
+            'results' => MovieResource::collection($movies),
+            'total_pages' => $movies->lastPage(),
+            'total_results' => $movies->total(),
         ]);
     }
 
