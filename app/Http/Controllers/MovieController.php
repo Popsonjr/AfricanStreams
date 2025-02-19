@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMovieRequest;
 use App\Http\Requests\UpdateMovieRequest;
+use App\Http\Resources\AccountStateResource;
+use App\Http\Resources\CreditResource;
+use App\Http\Resources\MovieResource;
+use App\Http\Resources\ReviewResource;
 use App\Models\Movie;
 use Exception;
 use Illuminate\Http\Request;
@@ -13,6 +17,41 @@ use Illuminate\Support\Facades\Validator;
 
 class MovieController extends Controller
 {
+
+    public function details(Request $request, $id) {
+        $movie = Movie::with(['genres', 'credits.person'])->findOrFail($id);
+        return new MovieResource($movie);
+    }
+
+    public function accountStates(Request $request, $id) {
+        $movie = Movie::findOrFail($id);
+        return new AccountStateResource($movie);
+    }
+
+    public function credits(Request $request, $id) {
+        $movie = Movie::findOrFail($id);
+        $credits = $movie->credits()->with('person')->get();
+
+        return response()->json([
+            'id' => $movie->id,
+            'cast' => CreditResource::collection($credits->where('character', '!=', null)),
+            'crew' => CreditResource::collection($credits->where('job', '!=', null)),
+        ]);
+    }
+
+    public function reviews(Request $request, $id) {
+        $movie = Movie::findOrFail($id);
+        $reviews = $movie->reviews()->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'id' => $movie->id,
+            'page' => $reviews->currentPage(),
+            'results' => ReviewResource::collection($reviews),
+            'total_pages' => $reviews->lastPage(),
+            'total_results' => $reviews->total(),
+        ]);
+    }
+
     //Fetch All Movies (with Filters, Search, pAgination)
     public function index(Request $request) {
         try {
