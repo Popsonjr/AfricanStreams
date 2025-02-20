@@ -101,6 +101,52 @@ class MovieController extends Controller
         ]);
     }
 
+    public function nowPlaying(Request $request) {
+        $movies = Movie::where('status', 'Released')
+        ->where('release_date', '<=', now())
+        ->orderBy('release_date', 'desc')
+        ->with(['genres'])
+        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $movies->currentPage(),
+            'results' => MovieResource::collection($movies),
+            'total_pages' => $movies->lastPage(),
+            'total_results' => $movies->total(),
+        ]);
+    }
+
+    public function upcoming(Request $request)
+    {
+        $movies = Movie::where('status', 'In Production')
+            ->where('release_date', '>', now())
+            ->orderBy('release_date', 'asc')
+            ->with(['genres'])
+            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $movies->currentPage(),
+            'results' => MovieResource::collection($movies),
+            'total_pages' => $movies->lastPage(),
+            'total_results' => $movies->total(),
+        ]);
+    }
+
+    public function topRated(Request $request)
+    {
+        $movies = Movie::where('vote_count', '>', 100)
+            ->orderBy('vote_average', 'desc')
+            ->with(['genres'])
+            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+
+        return response()->json([
+            'page' => $movies->currentPage(),
+            'results' => MovieResource::collection($movies),
+            'total_pages' => $movies->lastPage(),
+            'total_results' => $movies->total(),
+        ]);
+    }
+
     //Fetch All Movies (with Filters, Search, pAgination)
     public function index(Request $request) {
         try {
