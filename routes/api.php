@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EpisodeController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -33,4 +35,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/series/{id}/seasons', [SeasonController::class, 'index']);
     Route::get('/series/{id}/seasons/{seasonNumber}', [SeasonController::class, 'show']);
     Route::post('/series/{id}/seasons', [SeasonController::class, 'store']);
+    
+    Route::post('/series/{id}/seasons/{seasonNumber}/episodes', [EpisodeController::class, 'store']);
+
+    Route::post('/uploads', [UploadController::class, 'upload']);
 });
