@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\MovieController;
+use App\Http\Controllers\SeasonController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -16,17 +18,19 @@ Route::prefix('auth')->group(function () {
     Route::post('/password/reset-request', [AuthController::class, 'sendResetLink']);
     Route::post('/password/reset', [AuthController::class, 'resetPassword']);
     Route::post('/password/change', [AuthController::class, 'changePassword'])->middleware('auth:api');
-
-
-
-    
     
     // Route::get('facebook/redirect', AuthController::class, 'redirectToFacebook');
     // Route::get('facebook/callback', AuthController::class, 'handleFacebookCallback');
 });
 
-
-
 Route::prefix('admin')->group(function () {
     Route::post('/register', [AdminAuthController::class, 'register']);
+    Route::apiResource('movies', MovieController::class);
+    Route::get('movies/{id}/related', [MovieController::class, 'related']);
+});
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('/series/{id}/seasons', [SeasonController::class, 'index']);
+    Route::get('/series/{id}/seasons/{seasonNumber}', [SeasonController::class, 'show']);
+    Route::post('/series/{id}/seasons', [SeasonController::class, 'store']);
 });
