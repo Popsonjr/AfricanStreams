@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EpisodeController;
+use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\UploadController;
@@ -29,6 +31,8 @@ Route::prefix('admin')->group(function () {
     Route::post('/register', [AdminAuthController::class, 'register']);
     Route::apiResource('movies', MovieController::class);
     Route::get('movies/{id}/related', [MovieController::class, 'related']);
+    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('genres', GenreController::class);
 });
 
 Route::middleware('auth:api')->group(function () {
