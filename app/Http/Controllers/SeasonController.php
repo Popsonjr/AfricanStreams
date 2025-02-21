@@ -2,31 +2,54 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CreditResource;
+use App\Http\Resources\EpisodeAccountStateResource;
+use App\Http\Resources\SeasonResource;
 use App\Models\Season;
+use App\Models\TvShow;
 use Illuminate\Http\Request;
 
 class SeasonController extends Controller
 {
-    public function index($seriesId) {
-        $seasons = Season::where('series_id', $seriesId)->with('episodes')->get();
-        return response()->json($seasons);
+    public function details(Request $request, $seriesId, $seasonNumber)
+    {
+        $tvShow = TvShow::findOrFail($seriesId);
+        $season = Season::where('tv_show_id', $tvShow->id)
+            ->where('season_number', $seasonNumber)
+            ->with(['episodes', 'credits.person'])
+            ->firstOrFail();
+
+        return new SeasonResource($season);
     }
 
-    public function show($seriesId, $seasonNumber) {
-        $season = Season::where('series_id', $seriesId)->where('season_number', $seasonNumber)->with('episodes')->firstOrFail();
-        return response()->json($season);
+    public function accountStates(Request $request, $seriesId, $seasonNumber)
+    {
+        $tvShow = TvShow::findOrFail($seriesId);
+        $season = Season::where('tv_show_id', $tvShow->id)
+            ->where('season_number', $seasonNumber)
+            ->firstOrFail();
+
+        $episodes = $season->episodes()->get();
+
+        return response()->json([
+            'id' => $season->id,
+            'results' => EpisodeAccountStateResource::collection($episodes),
+        ]);
     }
 
-    public function store(Request $request, $seriesId) {
-        $request->validate([
-            'season_number' => 'required|integer'
-        ]);
+    public function credits(Request $request, $seriesId, $seasonNumber)
+    {
+        $tvShow = TvShow::findOrFail($seriesId);
+        $season = Season::where('tv_show_id', $tvShow->id)
+            ->where('season_number', $seasonNumber)
+            ->firstOrFail();
 
-        $season = Season::create([
-            'series_id' => $seriesId,
-            'season_number' => $request->season_number
-        ]);
+        $credits = $season->credits()->with('person')->get();
 
-        return response()->json($season, 201);
+        return response()->json([
+            'id' => $season->id,
+            'cast' => CreditResource::collection($credits->where('character', '!=', null)),
+            'crew' => CreditResource::collection($credits->where('job', '!=', null)),
+        ]);
     }
 }
