@@ -7,22 +7,49 @@ use Illuminate\Http\Request;
 
 class EpisodeController extends Controller
 {
-    public function store(Request $request, $seriesId, $seasonNUmber) {
-        $season = Season::where('series_id', $seriesId)->where('season_number', $seasonNUmber)->findOrFail();
+    public function details(Request $request, $seriesId, $seasonNumber, $episodeNumber)
+    {
+        $tvShow = TvShow::findOrFail($seriesId);
+        $season = Season::where('tv_show_id', $tvShow->id)
+            ->where('season_number', $seasonNumber)
+            ->firstOrFail();
+        $episode = Episode::where('season_id', $season->id)
+            ->where('episode_number', $episodeNumber)
+            ->with(['credits.person'])
+            ->firstOrFail();
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'duration' => 'required|string',
-            'release_date' => 'nullable|date',
-            'episode_number' => 'required|integer',
-            'banner_image' => 'nullable|string',
-            'cover_image' => 'nullable|string',
-            'standard_image' => 'nullable|string',
-            'thumbnail_image' => 'nullable|string',
+        return new EpisodeResource($episode);
+    }
+
+    public function accountStates(Request $request, $seriesId, $seasonNumber, $episodeNumber)
+    {
+        $tvShow = TvShow::findOrFail($seriesId);
+        $season = Season::where('tv_show_id', $tvShow->id)
+            ->where('season_number', $seasonNumber)
+            ->firstOrFail();
+        $episode = Episode::where('season_id', $season->id)
+            ->where('episode_number', $episodeNumber)
+            ->firstOrFail();
+
+        return new EpisodeAccountStateResource($episode);
+    }
+
+    public function credits(Request $request, $seriesId, $seasonNumber, $episodeNumber)
+    {
+        $tvShow = TvShow::findOrFail($seriesId);
+        $season = Season::where('tv_show_id', $tvShow->id)
+            ->where('season_number', $seasonNumber)
+            ->firstOrFail();
+        $episode = Episode::where('season_id', $season->id)
+            ->where('episode_number', $episodeNumber)
+            ->firstOrFail();
+
+        $credits = $episode->credits()->with('person')->get();
+
+        return response()->json([
+            'id' => $episode->id,
+            'cast' => CreditResource::collection($credits->where('character', '!=', null)),
+            'crew' => CreditResource::collection($credits->where('job', '!=', null)),
         ]);
-
-        $episode = $season->episodes()->create($request->all());
-        return response()->json($episode, 201);
     }
 }
