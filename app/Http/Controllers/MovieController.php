@@ -219,31 +219,25 @@ class MovieController extends Controller
     public function store(StoreMovieRequest $request) {
         try {
             $data = $request->validated();
-            if ($request->hasFile('banner_image')) {
-                $data['banner_image'] = $this->storeFile($request->file('banner_image'),'movies/banner');
-            }
-            if ($request->hasFile('cover_image')) {
-                $data['cover_image'] = $this->storeFile($request->file('cover_image'),'movies/covers');
-            }
-            if ($request->hasFile('standard_image')) {
-                $data['standard_image'] = $this->storeFile($request->file('standard_image'),'movies/standard');
-            }
-            if ($request->hasFile('thumbnail_image')) {
-                $data['thumbnail_image'] = $this->storeFile($request->file('thumbnail_image'),'movies/thumbnail');
-            }
-            if ($request->hasFile('movie_file')) {
-                $data['movie_file'] = $this->storeFile($request->file('movie_file'),'movies/videos');
-            }
+
+            // Convert array fields to JSON
+            $data['production_companies'] = isset($data['production_companies']) ? json_encode($data['production_companies']) : null;
+            $data['production_countries'] = isset($data['production_countries']) ? json_encode($data['production_countries']) : null;
+            $data['belongs_to_collection'] = isset($data['belongs_to_collection']) ? json_encode($data['belongs_to_collection']) : null;
+            $data['spoken_languages'] = isset($data['spoken_languages']) ? json_encode($data['spoken_languages']) : null;
+
+            // Create the movie
             $movie = Movie::create($data);
-            if($request->has('category_ids') && is_array($request->category_ids)) {
-                $movie->categories()->sync($request->category_ids);
+
+            // Sync genres if provided
+            if (isset($data['genres'])) {
+                $movie->genres()->sync($data['genres']);
             }
 
-            if($request->has('related_movie_ids') && is_array($request->related_movie_ids)) {
-                $movie->relatedMovies()->sync($request->related_movie_ids);
-            }
+            // Load relations for response
+            $movie->load(['genres']);
 
-            return response()->json($movie, 201);
+            return new MovieResource($movie);
         } catch(Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),

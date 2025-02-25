@@ -37,6 +37,10 @@ return new class extends Migration
             $table->float('popularity')->default(0);
             $table->boolean('video')->default(false);
             $table->timestamps();
+
+            // Add indexes for frequently queried columns
+            $table->index('popularity'); // Index for sorting by popularity
+            $table->index('release_date');
         });
     }
 
