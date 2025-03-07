@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('genres', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('type');
             $table->timestamps();
 
             $table->index('name');
+            $table->index('type');
         });
     }
 

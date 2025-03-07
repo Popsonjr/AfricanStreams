@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
         Movie::factory(100)->create()->each(function ($movie) {
             $movie->genres()->attach(Genre::where('type', 'movie')->inRandomOrder()->take(3)->pluck('id'));
             $movie->credits()->createMany(
-                Person::inRandomOrder()->take(5)->map(function ($person) {
+                Person::inRandomOrder()->take(5)->get()->map(function ($person) {
                     return [
                         'credit_id' => \Illuminate\Support\Str::uuid(),
                         'person_id' => $person->id,
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
         TvShow::factory(50)->create()->each(function ($tvShow) {
             $tvShow->genres()->attach(Genre::where('type', 'tv')->inRandomOrder()->take(3)->pluck('id'));
             $tvShow->credits()->createMany(
-                Person::inRandomOrder()->take(5)->map(function ($person) {
+                Person::inRandomOrder()->take(5)->get()->map(function ($person) {
                     return [
                         'credit_id' => \Illuminate\Support\Str::uuid(),
                         'person_id' => $person->id,
@@ -100,7 +100,7 @@ class DatabaseSeeder extends Seeder
                 // Episodes
                 Episode::factory(10)->create(['season_id' => $season->id])->each(function ($episode) {
                     $episode->credits()->createMany(
-                        Person::inRandomOrder()->take(3)->map(function ($person) {
+                        Person::inRandomOrder()->take(3)->get()->map(function ($person) {
                             return [
                                 'credit_id' => \Illuminate\Support\Str::uuid(),
                                 'person_id' => $person->id,

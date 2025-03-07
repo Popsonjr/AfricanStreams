@@ -33,8 +33,8 @@ class Movie extends Model
     // }
 
 
-    public function genre() {
-        return $this->belongsToMany(Genre::class, 'genre_movie');
+    public function genres() {
+        return $this->belongsToMany(Genre::class, 'genre_movie', 'movie_id', 'genre_id');
     }
 
     public function credits()
