@@ -17,8 +17,8 @@ class ReviewFactory extends Factory
     public function definition()
     {
         $reviewable = $this->faker->randomElement([
-            Movie::inRandomOrder()->first() ?? Movie::factory(),
-            TvShow::inRandomOrder()->first() ?? TvShow::factory(),
+            Movie::inRandomOrder()->first() ?? Movie::factory()->create(),
+            TvShow::inRandomOrder()->first() ?? TvShow::factory()->create(),
         ]);
 
         return [
