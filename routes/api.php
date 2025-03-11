@@ -5,13 +5,20 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EpisodeController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\ListController;
+use App\Http\Controllers\ListItemController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\TvController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\WatchlistController;
+use App\Models\Rating;
+use App\Models\Watchlist;
 use Illuminate\Support\Facades\Route;
 
 use Illuminate\Http\Request;
@@ -32,21 +39,30 @@ Route::prefix('auth')->group(function () {
         Route::post('/me', [AuthController::class, 'me']);
         Route::post('/password/change', [AuthController::class, 'changePassword']);
 
-        Route::get('/account', [AccountController::class, 'details']);
-        Route::get('/account/{account_id}/lists', [AccountController::class, 'lists']);
-        Route::get('/account/{account_id}/favourite/movies', [AccountController::class, 'favoriteMovies']);
-        Route::get('/account/{account_id}/favourite/tv', [AccountController::class, 'favoriteTv']);
-        Route::get('/account/{account_id}/favourite', [AccountController::class, 'markAsFavorite']);
-        Route::get('/account/{account_id}/rated/movies', [AccountController::class, 'ratedMovies']);
-        Route::get('/account/{account_id}/rated/tv', [AccountController::class, 'ratedTv']);
-        Route::get('/account/{account_id}/rated/tv/episodes', [AccountController::class, 'ratedEpisodes']);
-        Route::get('/account/{account_id}/watchlist/movies', [AccountController::class, 'watchlistMovies']);
-        Route::get('/account/{account_id}/watchlist/tv', [AccountController::class, 'watchlistTv']);
-        Route::get('/account/{account_id}/watchlist', [AccountController::class, 'addToWatchlist']);
+        
     });
     
     // Route::get('facebook/redirect', AuthController::class, 'redirectToFacebook');
     // Route::get('facebook/callback', AuthController::class, 'handleFacebookCallback');
+});
+Route::middleware('auth:api')->group(function () {
+    Route::get('/account', [AccountController::class, 'details']);
+    Route::get('/account/{account_id}/lists', [AccountController::class, 'lists']);
+    Route::get('/account/{account_id}/favourite/movies', [AccountController::class, 'favoriteMovies']);
+    Route::get('/account/{account_id}/favourite/tv', [AccountController::class, 'favoriteTv']);
+    Route::get('/account/{account_id}/favourite', [AccountController::class, 'markAsFavorite']);
+    Route::get('/account/{account_id}/rated/movies', [AccountController::class, 'ratedMovies']);
+    Route::get('/account/{account_id}/rated/tv', [AccountController::class, 'ratedTv']);
+    Route::get('/account/{account_id}/rated/tv/episodes', [AccountController::class, 'ratedEpisodes']);
+    Route::get('/account/{account_id}/watchlist/movies', [AccountController::class, 'watchlistMovies']);
+    Route::get('/account/{account_id}/watchlist/tv', [AccountController::class, 'watchlistTv']);
+    Route::get('/account/{account_id}/watchlist', [AccountController::class, 'addToWatchlist']);
+
+    Route::post('/favorite', [FavoriteController::class, 'store']);
+    Route::post('/watchlist', [WatchlistController::class, 'store']);
+    Route::post('/rating', [RatingController::class, 'store']);
+    Route::post('/list', [ListController::class, 'store']);
+    Route::post('/list/{list}/item', [ListItemController::class, 'store']);
 });
 
 Route::prefix('')->group(function () {
