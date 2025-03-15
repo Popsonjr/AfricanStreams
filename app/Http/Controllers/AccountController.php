@@ -24,7 +24,7 @@ class AccountController extends Controller
 
     public function lists(Request $request) {
         $lists = ListModel::where('user_id', Auth::id())
-        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+        ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $lists->currentPage(),
@@ -38,7 +38,7 @@ class AccountController extends Controller
         $favorites = Favorite::where('user_id', Auth::id())
         ->where('favoritable_type', Movie::class)
         ->with('favoritable')
-        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+        ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' =>$favorites->currentPage(),
@@ -52,7 +52,7 @@ class AccountController extends Controller
         $favorites = Favorite::where('user_id', Auth::id())
         ->where('favoritable_type', TvShow::class)
         ->with('favoritable')
-        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+        ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $favorites->currentPage(),
@@ -95,7 +95,7 @@ class AccountController extends Controller
         $ratings = Rating::where('user_id', Auth::id())
             ->where('rateable_type', Movie::class)
             ->with('rateable')
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $ratings->currentPage(),
@@ -110,7 +110,7 @@ class AccountController extends Controller
         $ratings = Rating::where('user_id', Auth::id())
             ->where('rateable_type', TvShow::class)
             ->with('rateable')
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $ratings->currentPage(),
@@ -125,7 +125,7 @@ class AccountController extends Controller
         $ratings = Rating::where('user_id', Auth::id())
             ->where('rateable_type', \App\Models\Episode::class)
             ->with('rateable')
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $ratings->currentPage(),
@@ -139,7 +139,7 @@ class AccountController extends Controller
         $watchlists = Watchlist::where('user_id', Auth::id())
         ->where('watchable_type', Movie::class)
         ->with('watchable')
-        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+        ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $watchlists->currentPage(),
@@ -154,7 +154,7 @@ class AccountController extends Controller
         $watchlists = Watchlist::where('user_id', Auth::id())
             ->where('watchable_type', TvShow::class)
             ->with('watchable')
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $watchlists->currentPage(),

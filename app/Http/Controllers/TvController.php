@@ -40,7 +40,7 @@ class TvController extends Controller
     public function reviews(Request $request, $id)
     {
         $tvShow = TvShow::findOrFail($id);
-        $reviews = $tvShow->reviews()->paginate(20, ['*'], 'page', $request->query('page', 1));
+        $reviews = $tvShow->reviews()->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'id' => $tvShow->id,
@@ -87,7 +87,7 @@ class TvController extends Controller
     {
         $tvShows = TvShow::orderBy('popularity', 'desc')
             ->with(['genres'])
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $tvShows->currentPage(),
@@ -103,7 +103,7 @@ class TvController extends Controller
             ->where('last_air_date', '>=', now()->subWeek())
             ->orderBy('last_air_date', 'desc')
             ->with(['genres'])
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $tvShows->currentPage(),
@@ -118,7 +118,7 @@ class TvController extends Controller
         $tvShows = TvShow::where('vote_count', '>', 100)
             ->orderBy('vote_average', 'desc')
             ->with(['genres'])
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $tvShows->currentPage(),

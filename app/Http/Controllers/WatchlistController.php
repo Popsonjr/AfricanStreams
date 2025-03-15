@@ -40,7 +40,7 @@ class WatchlistController extends Controller
 
         if ($existing) {
             $existing->delete();
-            return response()->json(null, 204);
+            return response()->json(['status_code' => 1, 'status_message' => 'Removed from watchlists'], 204);
         }
 
         $watchlist = Watchlist::create([

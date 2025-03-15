@@ -50,46 +50,48 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/account/{account_id}/lists', [AccountController::class, 'lists']);
     Route::get('/account/{account_id}/favourite/movies', [AccountController::class, 'favoriteMovies']);
     Route::get('/account/{account_id}/favourite/tv', [AccountController::class, 'favoriteTv']);
-    Route::get('/account/{account_id}/favourite', [AccountController::class, 'markAsFavorite']);
+    Route::post('/account/{account_id}/favourite', [AccountController::class, 'markAsFavorite']);
     Route::get('/account/{account_id}/rated/movies', [AccountController::class, 'ratedMovies']);
     Route::get('/account/{account_id}/rated/tv', [AccountController::class, 'ratedTv']);
     Route::get('/account/{account_id}/rated/tv/episodes', [AccountController::class, 'ratedEpisodes']);
     Route::get('/account/{account_id}/watchlist/movies', [AccountController::class, 'watchlistMovies']);
     Route::get('/account/{account_id}/watchlist/tv', [AccountController::class, 'watchlistTv']);
-    Route::get('/account/{account_id}/watchlist', [AccountController::class, 'addToWatchlist']);
+    Route::post('/account/{account_id}/watchlist', [AccountController::class, 'addToWatchlist']);
 
-    Route::post('/favorite', [FavoriteController::class, 'store']);
-    Route::post('/watchlist', [WatchlistController::class, 'store']);
-    Route::post('/rating', [RatingController::class, 'store']);
-    Route::post('/list', [ListController::class, 'store']);
-    Route::post('/list/{list}/item', [ListItemController::class, 'store']);
+    // Route::post('/account/{account_id}/favourite', [FavoriteController::class, 'store']);
+    // Route::post('/account/{account_id}/watchlist', [WatchlistController::class, 'store']);
+    Route::post('/account/{account_id}/rating', [RatingController::class, 'store']);
+    Route::post('/account/{account_id}/list', [ListController::class, 'store']);
+    Route::post('/account/{account_id}/list/{list}/item', [ListItemController::class, 'store']);
 });
 
 Route::prefix('')->group(function () {
     // Movie Endpoints
     Route::post('/movie', [MovieController::class, 'store'])->middleware('auth:admin');
+    Route::get('/movie/popular', [MovieController::class, 'popular']);
+    Route::get('/movie/now_playing', [MovieController::class, 'nowPlaying']);
+    Route::get('/movie/upcoming', [MovieController::class, 'upcoming']);
+    Route::get('/movie/top_rated', [MovieController::class, 'topRated']);
     Route::get('/movie/{id}', [MovieController::class, 'details']);
     Route::get('/movie/{id}/account_states', [MovieController::class, 'accountStates'])->middleware('auth:api');
     Route::get('/movie/{id}/credits', [MovieController::class, 'credits']);
     Route::get('/movie/{id}/reviews', [MovieController::class, 'reviews']);
     Route::post('/movie/{id}/rating', [MovieController::class, 'rate'])->middleware('auth:api');
     Route::delete('/movie/{id}/rating', [MovieController::class, 'deleteRating'])->middleware('auth:api');
-    Route::get('/movie/popular', [MovieController::class, 'popular']);
-    Route::get('/movie/now_playing', [MovieController::class, 'nowPlaying']);
-    Route::get('/movie/upcoming', [MovieController::class, 'upcoming']);
-    Route::get('/movie/top_rated', [MovieController::class, 'topRated']);
+    
 
     // TV Show Endpoints
+    Route::get('/tv/popular', [TvController::class, 'popular']);
+    // Route::get('/tv/airing_today', [TvController::class, 'airingToday']);
+    Route::get('/tv/on_the_air', [TvController::class, 'onTheAir']);
+    Route::get('/tv/top_rated', [TvController::class, 'topRated']);
     Route::get('/tv/{id}', [TvController::class, 'details']);
     Route::get('/tv/{id}/account_states', [TvController::class, 'accountStates'])->middleware('auth:api');
     Route::get('/tv/{id}/credits', [TvController::class, 'credits']);
     Route::get('/tv/{id}/reviews', [TvController::class, 'reviews']);
     Route::post('/tv/{id}/rating', [TvController::class, 'rate'])->middleware('auth:api');
     Route::delete('/tv/{id}/rating', [TvController::class, 'deleteRating'])->middleware('auth:api');
-    Route::get('/tv/popular', [TvController::class, 'popular']);
-    Route::get('/tv/airing_today', [TvController::class, 'airingToday']);
-    Route::get('/tv/on_the_air', [TvController::class, 'onTheAir']);
-    Route::get('/tv/top_rated', [TvController::class, 'topRated']);
+    
 
     // Season Endpoints
     Route::get('/tv/{series_id}/season/{season_number}', [SeasonController::class, 'details']);

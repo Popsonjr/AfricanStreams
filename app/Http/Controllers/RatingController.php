@@ -40,10 +40,11 @@ class RatingController extends Controller
             ->where('rateable_type', $rateable_type)
             ->first();
 
-        if ($existing) {
-            $existing->delete();
-            return response()->json(null, 204);
-        }
+            if ($existing) {
+                $existing->update(['value' => $request->value]);
+                return response()->json($existing, 200); // Rating updated
+            }
+    
 
         $rating = Rating::create([
             'user_id' => $request->user()->id,

@@ -43,7 +43,7 @@ class MovieController extends Controller
 
     public function reviews(Request $request, $id) {
         $movie = Movie::findOrFail($id);
-        $reviews = $movie->reviews()->paginate(20, ['*'], 'page', $request->query('page', 1));
+        $reviews = $movie->reviews()->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'id' => $movie->id,
@@ -56,7 +56,7 @@ class MovieController extends Controller
 
     public function rate(Request $request, $id) {
         $request->validate([
-            'value' => 'required|numeric|min:0.5|10',
+            'value' => 'required|numeric|min:0.5|max:10',
         ]);
 
         $movie = Movie::findOrFail($id);
@@ -91,7 +91,7 @@ class MovieController extends Controller
     public function popular(Request $request) {
         $movies = Movie::orderBy('popularity', 'desc')
         ->with(['genres'])
-        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+        ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $movies->currentPage(),
@@ -106,7 +106,7 @@ class MovieController extends Controller
         ->where('release_date', '<=', now())
         ->orderBy('release_date', 'desc')
         ->with(['genres'])
-        ->paginate(20, ['*'], 'page', $request->query('page', 1));
+        ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $movies->currentPage(),
@@ -122,7 +122,7 @@ class MovieController extends Controller
             ->where('release_date', '>', now())
             ->orderBy('release_date', 'asc')
             ->with(['genres'])
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $movies->currentPage(),
@@ -137,7 +137,7 @@ class MovieController extends Controller
         $movies = Movie::where('vote_count', '>', 100)
             ->orderBy('vote_average', 'desc')
             ->with(['genres'])
-            ->paginate(20, ['*'], 'page', $request->query('page', 1));
+            ->paginate(100, ['*'], 'page', $request->query('page', 1));
 
         return response()->json([
             'page' => $movies->currentPage(),

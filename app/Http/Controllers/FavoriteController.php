@@ -39,7 +39,7 @@ class FavoriteController extends Controller
 
         if ($existing) {
             $existing->delete();
-            return response()->json(null, 204); // Unfavorited
+            return response()->json(['status_code' => 1, 'status_message' => 'Removed from favorites'], 204); // Unfavorited
         }
 
         $favorite = Favorite::create([
