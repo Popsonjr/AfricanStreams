@@ -147,6 +147,47 @@ class MovieController extends Controller
         ]);
     }
 
+    public function stream(Movie $movie) {
+        if (!$movie->file_path || !Storage::disk('public')->exists($movie->file_path)) {
+            return response()->json(['message' => 'Movie file not found'], 404);
+        }
+
+        $path = public_path($movie->file_path);
+        $size = filesize($path);
+        $mime = mime_content_type($path);
+
+        $start = 0;
+        $end = $size - 1;
+        $length = $size;
+
+        $headers = [
+            'Content-Type' => $mime,
+            'Content-Length' => $size,
+            'Accept-Ranges' => 'bytes',
+        ];
+
+        if ($range = request()->header('Range')) {
+            preg_match('/bytes=(\d+)-(\d+)?/', $range, $matches);
+            $start = (int) $matches[1];
+            $end = isset($matches[2]) ? (int) $matches[2] : $size - 1;
+            $length = $end - $start + 1;
+
+            $headers = array_merge($headers, [
+                'Content-Length' => $length,
+                'Content-Range' => "bytes $start-$end/$size",
+            ]);
+
+            return response()->stream(function () use ($path, $start, $length) {
+                $stream = fopen($path, 'rb');
+                fseek($stream, $start);
+                echo fread($stream, $length);
+                fclose($stream);
+            }, 206, $headers);
+        }
+
+        return response()->file($path, $headers);
+    }
+
     //Fetch All Movies (with Filters, Search, pAgination)
     public function index(Request $request) {
         try {
@@ -227,7 +268,42 @@ class MovieController extends Controller
             $data['spoken_languages'] = isset($data['spoken_languages']) ? json_encode($data['spoken_languages']) : null;
 
             // Create the movie
-            $movie = Movie::create($data);
+            // $movie = Movie::create($data);
+
+            // Store the movie file in public/movies
+            $file = $request->file('movie_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = 'movies/' . $fileName;
+            $file->move(public_path('movies'), $fileName);
+
+            // Create the movie
+            $movie = Movie::create([
+                'title' => $data->title,
+                'overview' => $data->overview,
+                'poster_path' => $data->poster_path,
+                'backdrop_path' => $data->backdrop_path,
+                'release_date' => $data->release_date,
+                'vote_average' => $data->vote_average,
+                'vote_count' => $data->vote_count,
+                'adult' => $data->adult ?? false,
+                'original_language' => $data->original_language,
+                'original_title' => $data->original_title,
+                'runtime' => $data->runtime,
+                'status' => $data->status,
+                'production_companies' => $data->production_companies,
+                'production_countries' => $data->production_countries,
+                'tagline' => $data->tagline,
+                'budget' => $data->budget,
+                'revenue' => $data->revenue,
+                'homepage' => $data->homepage,
+                'belongs_to_collection' => $data->belongs_to_collection,
+                'spoken_languages' => $data->spoken_languages,
+                'imdb_id' => $data->imdb_id,
+                'popularity' => $data->popularity,
+                'video' => $data->video ?? false,
+                'file_path' => $filePath,
+                'user_id' => $data->user()->id,
+            ]);
 
             // Sync genres if provided
             if (isset($data['genres'])) {
