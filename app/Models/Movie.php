@@ -14,7 +14,7 @@ class Movie extends Model
         'vote_average', 'vote_count', 'adult', 'original_language', 'original_title',
         'runtime', 'status', 'production_companies', 'production_countries',
         'tagline', 'budget', 'revenue', 'homepage', 'belongs_to_collection',
-        'spoken_languages', 'imdb_id', 'popularity', 'video',
+        'spoken_languages', 'imdb_id', 'popularity', 'video', 'file_path',
     ];
 
     protected $casts = [

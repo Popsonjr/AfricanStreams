@@ -259,6 +259,10 @@ class MovieController extends Controller
 
     public function store(StoreMovieRequest $request) {
         try {
+            Log::info('StoreMovieRequest Files:', $request->allFiles());
+            Log::info('StoreMovieRequest Data:', $request->all());
+            Log::info('Movie File:', ['movie_file' => $request->file('movie_file')]);
+
             $data = $request->validated();
 
             // Convert array fields to JSON
@@ -267,42 +271,65 @@ class MovieController extends Controller
             $data['belongs_to_collection'] = isset($data['belongs_to_collection']) ? json_encode($data['belongs_to_collection']) : null;
             $data['spoken_languages'] = isset($data['spoken_languages']) ? json_encode($data['spoken_languages']) : null;
 
-            // Create the movie
-            // $movie = Movie::create($data);
-
             // Store the movie file in public/movies
             $file = $request->file('movie_file');
+            if (!$file instanceof \Illuminate\Http\UploadedFile || !$file->isValid()) {
+                Log::error('Invalid or missing movie_file', ['file' => $file]);
+                return response()->json([
+                    'message' => 'Movie file is missing or invalid.',
+                    'error' => 'Validation failed',
+                ], 422);
+            }
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = 'movies/' . $fileName;
             $file->move(public_path('movies'), $fileName);
+            Log::info('Movie File Path:', ['file_path' => $filePath]);
+
+            // Store poster image
+            $posterPath = null;
+            $poster = $request->file('poster');
+            if ($poster instanceof \Illuminate\Http\UploadedFile && $poster->isValid()) {
+                $posterName = time() . '_poster_' . $poster->getClientOriginalName();
+                $posterPath = 'movies/posters/' . $posterName;
+                $poster->move(public_path('movies/posters'), $posterName);
+            }
+
+            // Store backdrop image
+            $backdropPath = null;
+            $backdrop = $request->file('backdrop');
+            if ($backdrop instanceof \Illuminate\Http\UploadedFile && $backdrop->isValid()) {
+                $backdropName = time() . '_backdrop_' . $backdrop->getClientOriginalName();
+                $backdropPath = 'movies/backdrops/' . $backdropName;
+                $backdrop->move(public_path('movies/backdrops'), $backdropName);
+            }
 
             // Create the movie
             $movie = Movie::create([
-                'title' => $data->title,
-                'overview' => $data->overview,
-                'poster_path' => $data->poster_path,
-                'backdrop_path' => $data->backdrop_path,
-                'release_date' => $data->release_date,
-                'vote_average' => $data->vote_average,
-                'vote_count' => $data->vote_count,
-                'adult' => $data->adult ?? false,
-                'original_language' => $data->original_language,
-                'original_title' => $data->original_title,
-                'runtime' => $data->runtime,
-                'status' => $data->status,
-                'production_companies' => $data->production_companies,
-                'production_countries' => $data->production_countries,
-                'tagline' => $data->tagline,
-                'budget' => $data->budget,
-                'revenue' => $data->revenue,
-                'homepage' => $data->homepage,
-                'belongs_to_collection' => $data->belongs_to_collection,
-                'spoken_languages' => $data->spoken_languages,
-                'imdb_id' => $data->imdb_id,
-                'popularity' => $data->popularity,
-                'video' => $data->video ?? false,
+                'title' => $data['title'],
+                'overview' => $data['overview'],
+                'poster_path' => $posterPath,
+                'backdrop_path' => $backdropPath,
+                'release_date' => $data['release_date'],
+                'vote_average' => $data['vote_average'],
+                'vote_count' => $data['vote_count'],
+                'adult' => filter_var($data['adult'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+                'original_language' => $data['original_language'],
+                'original_title' => $data['original_title'],
+                'runtime' => $data['runtime'],
+                'status' => $data['status'],
+                'production_companies' => $data['production_companies'],
+                'production_countries' => $data['production_countries'],
+                'tagline' => $data['tagline'],
+                'budget' => $data['budget'],
+                'revenue' => $data['revenue'],
+                'homepage' => $data['homepage'],
+                'belongs_to_collection' => $data['belongs_to_collection'],
+                'spoken_languages' => $data['spoken_languages'],
+                'imdb_id' => $data['imdb_id'],
+                'popularity' => $data['popularity'],
+                'video' => filter_var($data['video'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
                 'file_path' => $filePath,
-                'user_id' => $data->user()->id,
+                'user_id' => $request->user()->id,
             ]);
 
             // Sync genres if provided
@@ -313,6 +340,7 @@ class MovieController extends Controller
             // Load relations for response
             $movie->load(['genres']);
 
+            Log::info('Movie Created:', ['movie_id' => $movie->id, 'file_path' => $movie->file_path]);
             return new MovieResource($movie);
         } catch(Exception $e) {
             return response()->json([
