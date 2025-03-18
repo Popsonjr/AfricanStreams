@@ -122,5 +122,12 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    'aliases' => [
+        'Paystack' => Unicodeveloper\Paystack\Facades\Paystack::class,
+    ],
+
+    // 'providers' => [
+    //     Unicodeveloper\Paystack\PaystackServiceProvider::class,
+    // ],
 
 ];
