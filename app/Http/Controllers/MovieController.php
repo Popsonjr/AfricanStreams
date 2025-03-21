@@ -319,15 +319,15 @@ class MovieController extends Controller
             if ($poster instanceof \Illuminate\Http\UploadedFile && $poster->isValid()) {
                 $posterName = time() . '_poster_' . $poster->getClientOriginalName();
                 $posterPath = 'movies/posters/' . $posterName;
-                $poster->move(public_path('movies/posters'), $posterName);
 
-                // Create w500 version
-                $posterW500Name = time() . '_poster_w500_' . str_replace(' ', '_', $poster->getClientOriginalName());
-                $posterPathW500 = 'movies/posters/' . $posterW500Name;
-                Image::make($poster->getRealPath())
-                    ->fit(500, 500)
-                    ->save(public_path($posterPathW500));
-                Log::info('Poster w500 Path:', ['poster_path_w500' => $posterPathW500]);
+                $originalDir = public_path('movies/posters');
+                if (!file_exists($originalDir)) {
+                    mkdir($originalDir, 0755, true);
+                }
+                $poster->move($originalDir, $posterName);
+
+                // Create w500 and w720 versions
+                $this->resizeImageVariants($posterPath);
             }
 
             // Store backdrop image
@@ -336,7 +336,15 @@ class MovieController extends Controller
             if ($backdrop instanceof \Illuminate\Http\UploadedFile && $backdrop->isValid()) {
                 $backdropName = time() . '_backdrop_' . $backdrop->getClientOriginalName();
                 $backdropPath = 'movies/backdrops/' . $backdropName;
-                $backdrop->move(public_path('movies/backdrops'), $backdropName);
+
+                $originalDir = public_path('movies/backdrops');
+                if (!file_exists($originalDir)) {
+                    mkdir($originalDir, 0755, true);
+                }
+                $backdrop->move($originalDir, $backdropName);
+
+                // Create w500 and w720 versions
+                $this->resizeImageVariants($backdropPath);
             }
 
             // Create the movie
@@ -386,6 +394,57 @@ class MovieController extends Controller
             ], 500);
         }
         
+    }
+
+    private function resizeImageVariants($relativePath) {
+        $sourcePath = public_path($relativePath);
+        $fileName = basename($relativePath);
+        $subPath = dirname($relativePath);
+    
+        // Determine image type
+        $mime = mime_content_type($sourcePath);
+        switch ($mime) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                $createFunc = 'imagecreatefromjpeg';
+                $saveFunc = 'imagejpeg';
+                $extension = 'jpg';
+                break;
+            case 'image/png':
+                $createFunc = 'imagecreatefrompng';
+                $saveFunc = 'imagepng';
+                $extension = 'png';
+                break;
+            default:
+                throw new \Exception("Unsupported image format: $mime");
+        }
+    
+        foreach ([500, 720] as $targetWidth) {
+            $variantDir = public_path("w{$targetWidth}/" . $subPath);
+            if (!file_exists($variantDir)) {
+                mkdir($variantDir, 0755, true);
+            }
+    
+            $destinationPath = $variantDir . '/' . $fileName;
+    
+            list($originalWidth, $originalHeight) = getimagesize($sourcePath);
+            $targetHeight = intval($targetWidth * ($originalHeight / $originalWidth));
+    
+            $src = $createFunc($sourcePath);
+            $resized = imagecreatetruecolor($targetWidth, $targetHeight);
+    
+            // Preserve PNG transparency
+            if ($mime === 'image/png') {
+                imagealphablending($resized, false);
+                imagesavealpha($resized, true);
+            }
+    
+            imagecopyresampled($resized, $src, 0, 0, 0, 0, $targetWidth, $targetHeight, $originalWidth, $originalHeight);
+            $saveFunc($resized, $destinationPath);
+    
+            imagedestroy($src);
+            imagedestroy($resized);
+        }
     }
 
     public function update(UpdateMovieRequest $request, Movie $movie) {
