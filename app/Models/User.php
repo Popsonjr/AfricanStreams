@@ -78,4 +78,8 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(ListModel::class);
     }
+
+    public function subscriptions() {
+        return $this->hasMany(Subscription::class);
+    }
 }
