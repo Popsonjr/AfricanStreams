@@ -33,7 +33,7 @@ class PlanController extends Controller
                 'name' => $data['name'],
                 'amount' => $data['amount'],
                 'interval' => $data['interval'],
-                'dewcriptions' => $data['benefits'],
+                // 'descriptions' => $data['benefits'],
             ]);
 
             $plan = Plan::create([

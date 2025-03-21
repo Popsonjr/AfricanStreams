@@ -10,10 +10,12 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ListController;
 use App\Http\Controllers\ListItemController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\PlanController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\SeriesController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TvController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\WatchlistController;
@@ -67,6 +69,7 @@ Route::middleware('auth:api')->group(function () {
 
 Route::prefix('')->group(function () {
     // Movie Endpoints
+    Route::get('/movie/all', [MovieController::class, 'index']);
     Route::post('/movie', [MovieController::class, 'store'])->middleware('auth:admin');
     Route::get('/movie/popular', [MovieController::class, 'popular']);
     Route::get('/movie/now_playing', [MovieController::class, 'nowPlaying']);
@@ -155,6 +158,27 @@ Route::prefix('admin')->group(function () {
     });
 });
 
+// Plan routes
+Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
+Route::post('plans', [PlanController::class, 'store'])->name('plans.store');
+Route::middleware('auth:admin')->group(function () {
+    
+    Route::get('plans/{plan}', [PlanController::class, 'show'])->name('plans.show');
+    Route::put('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
+    Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
+});
+
+// Subscription routes
+Route::middleware('auth:admin')->group(function () {
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::delete('subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+    Route::get('subscriptions/verify', [SubscriptionController::class, 'verify'])->name('subscriptions.verify');
+});
+
+// Webhook route (no auth)
+Route::post('subscriptions/webhook', [SubscriptionController::class, 'handleWebhook'])->name('subscriptions.webhook');
+
 //Route For Series
 // Route::prefix('series')->group(function() {
 //     Route::get('/', [SeriesController::class, 'index']);
@@ -190,11 +214,11 @@ Route::prefix('admin')->group(function () {
 
 
 
-// Route::options('{any}', function (Request $request) {
-//     return response()->noContent(204)
-//         ->withHeaders([
-//             'Access-Control-Allow-Origin' => $request->header('Origin') ?? '*',
-//             'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
-//             'Access-Control-Allow-Headers' => $request->header('Access-Control-Request-Headers') ?? 'Origin, Content-Type, Accept, Authorization',
-//         ]);
-// })->where('any', '.*');
+Route::options('{any}', function (Request $request) {
+    return response()->noContent(204)
+        ->withHeaders([
+            'Access-Control-Allow-Origin' => $request->header('Origin') ?? '*',
+            'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers' => $request->header('Access-Control-Request-Headers') ?? 'Origin, Content-Type, Accept, Authorization',
+        ]);
+})->where('any', '.*');

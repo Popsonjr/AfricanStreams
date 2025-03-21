@@ -123,11 +123,22 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
     'aliases' => [
+        'File' => Illuminate\Support\Facades\File::class,
+        'Auth' => Illuminate\Support\Facades\Auth::class,
         'Paystack' => Unicodeveloper\Paystack\Facades\Paystack::class,
+        // 'Image' => Intervention\Image\Facades\Image::class,
+        'Cache' => Illuminate\Support\Facades\Cache::class,
+        'DB' => Illuminate\Support\Facades\DB::class,
     ],
 
-    // 'providers' => [
-    //     Unicodeveloper\Paystack\PaystackServiceProvider::class,
-    // ],
+    'providers' => [
+        Illuminate\Foundation\Providers\ConsoleSupportServiceProvider::class,
+        Illuminate\Auth\AuthServiceProvider::class,
+        Illuminate\Filesystem\FilesystemServiceProvider::class,
+        Illuminate\Cache\CacheServiceProvider::class,
+        // Unicodeveloper\Paystack\PaystackServiceProvider::class,
+        // Intervention\Image\ImageServiceProvider::class,
+        Illuminate\Database\DatabaseServiceProvider::class,
+    ],
 
 ];

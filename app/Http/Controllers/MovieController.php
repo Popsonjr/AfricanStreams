@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+// use Intervention\Image\Facades\Image;
 
 class MovieController extends Controller
 {
@@ -191,36 +192,63 @@ class MovieController extends Controller
     //Fetch All Movies (with Filters, Search, pAgination)
     public function index(Request $request) {
         try {
-            $query = Movie::with('categories', 'genre', 'seasons', 'relatedMovies');
+            // Check for active subscription
+            // if (!$request->user()->subscriptions()->where('status', 'active')->exists()) {
+            //     return response()->json(['message' => 'Active subscription required'], 403);
+            // }
 
-            if($request->has('category')) {
-                $query->whereHas('categories', function ($q) use ($request) {
-                    $q->where('slug', $request->category);
-                });
+            // Get sort field (default to created_at)
+            $sortField = $request->query('sort', 'created_at');
+            $allowedSortFields = ['created_at', 'popularity', 'title', 'vote_average', 'release_date'];
+            
+            // Validate sort field
+            if (!in_array($sortField, $allowedSortFields)) {
+                $sortField = 'created_at';
             }
 
-            if($request->has('genre')) {
-                $query->whereHas('genre', function($q) use ($request) {
-                    $q->where('slug', $request->genre);
-                });
-            }
+            // Fetch movies sorted by the specified field in descending order
+            $movies = Movie::orderBy($sortField, 'desc')
+                ->with(['genres'])
+                ->paginate(200, ['*'], 'page', $request->query('page', 1));
 
-            if($request->has('season')) {
-                $query->whereHas('seasons', function ($q) use($request) {
-                    $q->where('season_number', $request->season);
-                });
-            }
+            return response()->json([
+                'page' => $movies->currentPage(),
+                'results' => MovieResource::collection($movies),
+                'total_pages' => $movies->lastPage(),
+                'total_results' => $movies->total(),
+            ]);
 
-            if ($request->has('search')) {
-                $query->where('title', 'LIKE', '%' . $request->search . '%');
-            }
+            
+            // $query = Movie::with('categories', 'genre', 'seasons', 'relatedMovies');
 
-            if($request->has('type')) {
-                $query->where('type', $request->type);
-            }
+            // if($request->has('category')) {
+            //     $query->whereHas('categories', function ($q) use ($request) {
+            //         $q->where('slug', $request->category);
+            //     });
+            // }
 
-            $movies = $query->paginate(100);
-            return response()->json($movies);
+            // if($request->has('genre')) {
+            //     $query->whereHas('genre', function($q) use ($request) {
+            //         $q->where('slug', $request->genre);
+            //     });
+            // }
+
+            // if($request->has('season')) {
+            //     $query->whereHas('seasons', function ($q) use($request) {
+            //         $q->where('season_number', $request->season);
+            //     });
+            // }
+
+            // if ($request->has('search')) {
+            //     $query->where('title', 'LIKE', '%' . $request->search . '%');
+            // }
+
+            // if($request->has('type')) {
+            //     $query->where('type', $request->type);
+            // }
+
+            // $movies = $query->paginate(100);
+            // return response()->json($movies);
         } catch (Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -261,7 +289,7 @@ class MovieController extends Controller
         try {
             // Log::info('StoreMovieRequest Files:', $request->allFiles());
             Log::info('StoreMovieRequest Data:', $request->all());
-            Log::info('trailer Url :', ['trailer_url' => $request->trailer_url]);
+            // Log::info('trailer Url :', ['trailer_url' => $request->trailer_url]);
 
             $data = $request->validated();
 
@@ -292,6 +320,14 @@ class MovieController extends Controller
                 $posterName = time() . '_poster_' . $poster->getClientOriginalName();
                 $posterPath = 'movies/posters/' . $posterName;
                 $poster->move(public_path('movies/posters'), $posterName);
+
+                // Create w500 version
+                $posterW500Name = time() . '_poster_w500_' . str_replace(' ', '_', $poster->getClientOriginalName());
+                $posterPathW500 = 'movies/posters/' . $posterW500Name;
+                Image::make($poster->getRealPath())
+                    ->fit(500, 500)
+                    ->save(public_path($posterPathW500));
+                Log::info('Poster w500 Path:', ['poster_path_w500' => $posterPathW500]);
             }
 
             // Store backdrop image
