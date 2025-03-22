@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('amount'); // In kobo (e.g., N2400 = 240000 kobo)
             $table->string('interval')->nullable(); // e.g., monthly, quarterly
             $table->string('paystack_plan_code')->nullable(); // Paystack plan code
-            $table->boolean('active')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }
