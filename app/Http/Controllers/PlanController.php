@@ -8,7 +8,7 @@ use App\Http\Resources\PlanResource;
 use App\Models\Plan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Unicodeveloper\Paystack\Facades\Paystack;
+// use Unicodeveloper\Paystack\Facades\Paystack;
 
 // use Unicodeveloper\Paystack\Paystack;
 
