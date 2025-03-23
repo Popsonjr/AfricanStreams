@@ -39,6 +39,7 @@ class MovieResource extends JsonResource
             'imdb_id' => $this->imdb_id,
             'popularity' => $this->popularity,
             'video' => $this->video,
+            'media_type' => $this->resource instanceof \App\Models\Movie ? 'movie' : 'tv',
             'file_url' => $this->file_path ? url($this->file_path) : null,
             'trailer_url' => $this->trailer_url ? url($this->trailer_url) : null,
             'genres' => $this->whenLoaded('genres', fn() => $this->genres->map(fn($genre) => [

@@ -9,15 +9,19 @@ use App\Models\Plan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 // use Unicodeveloper\Paystack\Facades\Paystack;
+use App\Services\PaystackService;
+use Illuminate\Routing\Controller;
 
 // use Unicodeveloper\Paystack\Paystack;
 
 class PlanController extends Controller
 {
-    protected $paystack;
+    protected $paystackService;
     
-    public function __construct() {
-        $this->paystack = new Paystack();
+    public function __construct(PaystackService $paystackService)
+    {
+        $this->paystackService = $paystackService;
+        $this->middleware('auth:api')->except(['handleGatewayCallback']);
     }
     
     public function index(Request $request) {
