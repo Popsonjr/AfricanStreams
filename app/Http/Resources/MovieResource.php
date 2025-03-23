@@ -40,6 +40,7 @@ class MovieResource extends JsonResource
             'popularity' => $this->popularity,
             'video' => $this->video,
             'file_url' => $this->file_path ? url($this->file_path) : null,
+            'trailer_url' => $this->trailer_url ? url($this->trailer_url) : null,
             'genres' => $this->whenLoaded('genres', fn() => $this->genres->map(fn($genre) => [
                 'id' => $genre->id,
                 'name' => $genre->name,

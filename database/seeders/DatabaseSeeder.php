@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
         Person::factory(50)->create();
 
         // Movies
-        Movie::factory(100)->create()->each(function ($movie) {
+        Movie::factory(1000)->create()->each(function ($movie) {
             $movie->genres()->attach(Genre::where('type', 'movie')->inRandomOrder()->take(3)->pluck('id'));
             $movie->credits()->createMany(
                 Person::inRandomOrder()->take(5)->get()->map(function ($person) {

@@ -259,9 +259,9 @@ class MovieController extends Controller
 
     public function store(StoreMovieRequest $request) {
         try {
-            Log::info('StoreMovieRequest Files:', $request->allFiles());
+            // Log::info('StoreMovieRequest Files:', $request->allFiles());
             Log::info('StoreMovieRequest Data:', $request->all());
-            Log::info('Movie File:', ['movie_file' => $request->file('movie_file')]);
+            Log::info('trailer Url :', ['trailer_url' => $request->trailer_url]);
 
             $data = $request->validated();
 
@@ -329,6 +329,7 @@ class MovieController extends Controller
                 'popularity' => $data['popularity'],
                 'video' => filter_var($data['video'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
                 'file_path' => $filePath,
+                'trailer_url' => $data['trailer_url'],
                 'user_id' => $request->user()->id,
             ]);
 
@@ -340,7 +341,7 @@ class MovieController extends Controller
             // Load relations for response
             $movie->load(['genres']);
 
-            Log::info('Movie Created:', ['movie_id' => $movie->id, 'file_path' => $movie->file_path]);
+            Log::info('Movie Created:', ['movie_id' => $movie->id, 'file_path' => $movie->trailer_url]);
             return new MovieResource($movie);
         } catch(Exception $e) {
             return response()->json([

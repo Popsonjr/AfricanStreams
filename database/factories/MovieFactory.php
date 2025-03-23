@@ -19,8 +19,8 @@ class MovieFactory extends Factory
         return [
             'title' => $this->faker->sentence(3),
             'overview' => $this->faker->paragraph,
-            'poster_path' => $this->faker->imageUrl(),
-            'backdrop_path' => $this->faker->imageUrl(),
+            'poster_path' => '/storage/movies/covers/o1AkW5ECBbBYV1WHn74DzbWCZ1kJv162kv0DBIkS.jpg',
+            'backdrop_path' => '/storage/movies/standard/GHkFv0jVbqj04lPFNynj0klVQDqtl9u9YtEn6F0V.jpg',
             'release_date' => $this->faker->date(),
             'vote_average' => $this->faker->randomFloat(1, 0, 10),
             'vote_count' => $this->faker->numberBetween(0, 1000),
@@ -56,6 +56,8 @@ class MovieFactory extends Factory
             'imdb_id' => 'tt' . $this->faker->numberBetween(1000000, 9999999),
             'popularity' => $this->faker->randomFloat(2, 0, 1000),
             'video' => $this->faker->boolean,
+            'file_path' => '/storage/movies/videos/kiC40IxCEfMff4R4iaR9IpW2JcXBJBbPdBDRZdUC.mkv',
+            'trailer_url' => 'https://www.youtube.com/embed/2xb9Ty-1frw?autoplay=1&mute=1&controls=0&loop=1&playlist=2xb9Ty-1frw'
         ];
     }
 }
