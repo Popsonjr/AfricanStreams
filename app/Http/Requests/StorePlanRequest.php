@@ -26,7 +26,7 @@ class StorePlanRequest extends FormRequest
             'duration_months' => 'integer|min:1',
             'benefits' => 'nullable|string',
             'amount' => 'required|integer|min:1000',
-            'interval' => 'required|in:hourly,daily,weekly,monthly,quaterly,annually',
+            'interval' => 'required|in:hourly,daily,weekly,monthly,quarterly,annually',
             'active' => 'nullable|in:true,false,1,0',
         ];
     }

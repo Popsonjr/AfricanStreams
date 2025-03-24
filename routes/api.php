@@ -10,6 +10,7 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ListController;
 use App\Http\Controllers\ListItemController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ReviewController;
@@ -157,6 +158,9 @@ Route::prefix('admin')->group(function () {
         Route::delete('/movies', [MovieController::class, 'delete']);
     });
 });
+
+Route::post('/pay', [PaymentController::class, 'redirectToGateway'])->name('pay')->middleware('auth:api');
+Route::get('/payment/callback', [PaymentController::class, 'handleGatewayCallback'])->name('payment.callback');
 
 // Plan routes
 Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
