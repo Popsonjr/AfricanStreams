@@ -192,6 +192,13 @@ Route::prefix('admin')->group(function () {
         // Admin: Get any user's activity logs
         Route::get('/activity-logs/user/{user_id}', [ActivityLogController::class, 'userLogs']);
 
+        // Dashboard statistics endpoints
+        Route::get('/dashboard/statistics', [\App\Http\Controllers\DashboardController::class, 'statistics']);
+        Route::get('/dashboard/subscribers-rolling', [\App\Http\Controllers\DashboardController::class, 'subscribersRolling']);
+        Route::get('/dashboard/user-growth', [\App\Http\Controllers\DashboardController::class, 'userGrowth']);
+        Route::get('/dashboard/subscriber-growth', [\App\Http\Controllers\DashboardController::class, 'subscriberGrowth']);
+        Route::get('/dashboard/transactions', [\App\Http\Controllers\DashboardController::class, 'transactionHistory']);
+
     });
 
     Route::apiResource('categories', CategoryController::class);
