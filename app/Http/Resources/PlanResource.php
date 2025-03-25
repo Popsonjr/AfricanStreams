@@ -16,13 +16,11 @@ class PlanResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user_id' => $this->user_id,
-            'plan' => new PlanResource($this->plan),
-            'status' => $this->status,
-            'start_date' => $this->start_date,
-            'end_date' => $this->end_date,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'name' => $this->name,
+            'benefits' => $this->benefits,
+            'amount' => $this->amount,
+            'interval' => $this->interval,
+            'active' => $this->active,
         ];
     }
 }

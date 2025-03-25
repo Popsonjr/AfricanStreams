@@ -164,10 +164,10 @@ Route::get('/payment/callback', [PaymentController::class, 'handleGatewayCallbac
 
 // Plan routes
 Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
-Route::post('plans', [PlanController::class, 'store'])->name('plans.store');
+Route::get('plans/{plan}', [PlanController::class, 'show'])->name('plans.show');
+
 Route::middleware('auth:admin')->group(function () {
-    
-    Route::get('plans/{plan}', [PlanController::class, 'show'])->name('plans.show');
+    Route::post('plans', [PlanController::class, 'store'])->name('plans.store');
     Route::put('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
     Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
 });

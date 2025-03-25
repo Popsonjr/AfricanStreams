@@ -39,23 +39,24 @@ class PlanController extends Controller
                 $request->interval
             );
 
+            Log::info('Request payload', ['data' => $data]);
             Log::info('Response from paystack', ['response' => $response]);
             if ($response['status']) {
-                $plan = Plan::create([
-                    'name' => $request->name,
-                    'paystack_plan_code' => $response['data']['plan_code'],
-                    'amount' => $request->amount,
-                    'interval' => $request->interval,
-                ]);
-                $data = $response['data'];
+                // $plan = Plan::create([
+                //     'name' => $request->name,
+                //     'paystack_plan_code' => $response['data']['plan_code'],
+                //     'amount' => $request->amount,
+                //     'interval' => $request->interval,
+                // ]);
+                $paystackData = $response['data'];
                 $plan = Plan::create([
                     'name' => $data['name'],
-                    // 'duration_months' => $data['duration_months'],
+                    'duration_months' => $data['duration_months'],
                     'benefits' => $data['benefits'],
                     'amount' => $data['amount'],
-                    'interval' => $data['interval'],
-                    'active' => filter_var($data['active'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true,
-                    'paystack_plan_code' => $data['plan_code'],
+                    'interval' => $paystackData['interval'],
+                    // 'active' => filter_var($data['active'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true,
+                    'paystack_plan_code' => $paystackData['plan_code'],
             ]);
 
                 return response()->json($plan, 201);

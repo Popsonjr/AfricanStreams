@@ -23,6 +23,7 @@ class StoreSubscriptionRequest extends FormRequest
     {
         return [
             'plan_id' => 'required|exists:plans,id',
+            'user_id' => 'required|exists:users,id',
         ];
     }
 }
