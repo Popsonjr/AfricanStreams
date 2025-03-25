@@ -49,4 +49,10 @@ class Admin extends Authenticatable implements JWTSubject
     {
         return $value ? url(Storage::url($value)) : null;
     }
+
+    // Accessor for status (active/inactive based on deleted_at)
+    public function getStatusAttribute()
+    {
+        return is_null($this->deleted_at) ? 'active' : 'inactive';
+    }
 }

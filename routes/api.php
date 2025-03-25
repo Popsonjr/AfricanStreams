@@ -167,6 +167,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/me', [AdminAuthController::class, 'me']);
         Route::post('/get-user', [AdminAuthController::class, 'getUser']);
         Route::post('/password/change', [AdminAuthController::class, 'changePassword']);
+        Route::put('/users/{userId}', [AdminAuthController::class, 'updateUser']);
         Route::put('/update', [AdminAuthController::class, 'update']);
         Route::delete('/profile', [AdminAuthController::class, 'delete']);
         Route::delete('/batch', [AdminAuthController::class, 'batchDestroy']);

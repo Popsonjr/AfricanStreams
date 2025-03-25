@@ -611,13 +611,20 @@ class AdminAuthController extends Controller
             // Get only active admins (explicitly exclude soft-deleted) with pagination
             $admins = Admin::whereNull('deleted_at')->paginate(100);
             
+            // Transform the admins to include status field
+            $adminsWithStatus = $admins->getCollection()->map(function ($admin) {
+                $adminArray = $admin->toArray();
+                $adminArray['status'] = $admin->status; // This will be 'active' for all admins
+                return $adminArray;
+            });
+            
             // Log the count of active admins
             Log::info('Active admin count:', [
                 'total' => $admins->total()
             ]);
 
             return response()->json([
-                'admins' => $admins->items(),
+                'admins' => $adminsWithStatus,
                 'pagination' => [
                     'total' => $admins->total(),
                     'per_page' => $admins->perPage(),
@@ -637,6 +644,90 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while fetching admin users'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update any admin user by ID (admin only)
+     */
+    public function updateUser(Request $request, $adminId)
+    {
+        try {
+            $request->validate([
+                'first_name' => 'nullable|string|max:255',
+                'last_name' => 'nullable|string|max:255',
+                'phone_number' => [
+                    'nullable',
+                    'string',
+                    'regex:/^(0\d{10}|\+234\d{10}|\+?[1-9]\d{1,14})$/'
+                ],
+                'profile_image' => [
+                    'nullable',
+                    'image',
+                    'mimes:jpeg,png,jpg',
+                    'max:8182' // 8MB max
+                ]
+            ]);
+
+            $admin = Admin::findOrFail($adminId);
+            $currentAdmin = JWTAuth::user();
+            if ($admin->id === $currentAdmin->id) {
+                return response()->json([
+                    'message' => 'You cannot update your own account via this endpoint'
+                ], 403);
+            }
+
+            // Get all validated data
+            $data = $request->only([
+                'first_name',
+                'last_name',
+                'phone_number'
+            ]);
+            $data = array_filter($data, function($value) {
+                return $value !== null;
+            });
+
+            // Handle profile image upload if present
+            if ($request->hasFile('profile_image')) {
+                // Delete old profile image if exists
+                if ($admin->profile_image) {
+                    Storage::disk('public')->delete($admin->profile_image);
+                }
+                $profileImage = $request->file('profile_image');
+                $fileName = time() . '_' . $profileImage->getClientOriginalName();
+                $path = $profileImage->storeAs('admin-profiles', $fileName, 'public');
+                $data['profile_image'] = $path;
+            }
+
+            if (empty($data)) {
+                return response()->json([
+                    'message' => 'No data provided for update',
+                    'received_data' => $request->all(),
+                    'debug_info' => [
+                        'content_type' => $request->header('Content-Type'),
+                        'has_files' => $request->hasFile('profile_image'),
+                        'all_input' => $request->input(),
+                        'all_files' => $request->allFiles()
+                    ]
+                ], 400);
+            }
+
+            $admin->update($data);
+            $admin->refresh();
+
+            return response()->json([
+                'message' => 'Admin profile updated successfully',
+                'admin' => $admin
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Admin Update Error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while updating admin profile'
             ], 500);
         }
     }
