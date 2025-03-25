@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Tymon\JWTAuth\Contracts\Providers\JWT;
@@ -13,7 +14,7 @@ use Tymon\JWTAuth\Contracts\Providers\JWT;
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -86,5 +87,22 @@ class User extends Authenticatable implements JWTSubject
     public function watchHistories()
     {
         return $this->hasMany(WatchHistory::class);
+    }
+
+    // Accessor for status (active/inactive based on deleted_at)
+    public function getStatusAttribute()
+    {
+        return is_null($this->deleted_at) ? 'active' : 'inactive';
+    }
+
+    // Accessor for subscribed (yes/no based on active subscription)
+    public function getSubscribedAttribute()
+    {
+        return $this->subscriptions()->where('status', 'active')->exists() ? 'yes' : 'no';
+    }
+
+    public function lastActivityLog()
+    {
+        return $this->hasOne(\App\Models\ActivityLog::class)->orderByDesc('activity_date')->orderByDesc('activity_time');
     }
 }

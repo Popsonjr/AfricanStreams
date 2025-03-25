@@ -15,3 +15,4 @@ ADMIN
 -add phone number field
 
 -check if account has been deleted before new delete action, same in bulk endpoint
+-Add a check to confirm either upload or url is presentn when creating movies for all upload

@@ -285,7 +285,7 @@ class AdminAuthController extends Controller
                 'verification_token' => $token
             ]);
 
-            Mail::to($admin->email)->send(new VerificationEmail($token, env('APP_FRONTEND')));
+            Mail::to($admin->email)->send(new VerificationEmail($token, env('ADMIN_FRONTEND')));
 
             return response()->json([
                 'message' => 'Verification email sent',
@@ -311,7 +311,7 @@ class AdminAuthController extends Controller
                     'created_at' => now()
                 ]
             );
-            Mail::to($request->email)->send(new ResetPasswordEmail($token, env('APP_FRONTEND')));
+            Mail::to($request->email)->send(new ResetPasswordEmail($token, env('ADMIN_FRONTEND')));
 
             return response()->json(['message' => 'Reset link sent']);
         } catch (Exception $e) {

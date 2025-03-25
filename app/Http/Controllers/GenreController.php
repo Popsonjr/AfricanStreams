@@ -13,10 +13,10 @@ class GenreController extends Controller
 {
 
     public function index() {
-        $genres = Genre::paginate(100);
+        $genres = Genre::withCount('movies')->paginate(100);
         
         return response()->json([
-            'genres' => $genres->items(),
+            'genres' => GenreResource::collection($genres->items()),
             'pagination' => [
                 'total' => $genres->total(),
                 'per_page' => $genres->perPage(),
@@ -36,7 +36,7 @@ class GenreController extends Controller
      */
     public function movieGenres(Request $request)
     {
-        $genres = Genre::where('type', 'movie')->get();
+        $genres = Genre::where('type', 'movie')->withCount('movies')->get();
         return response()->json([
             'genres' => GenreResource::collection($genres),
         ]);
@@ -50,7 +50,7 @@ class GenreController extends Controller
      */
     public function tvGenres(Request $request)
     {
-        $genres = Genre::where('type', 'tv')->get();
+        $genres = Genre::where('type', 'tv')->withCount('movies')->get();
         return response()->json([
             'genres' => GenreResource::collection($genres),
         ]);
@@ -70,9 +70,10 @@ class GenreController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:movie,tv',
+            'status' => 'sometimes|in:active,inactive',
         ]);
 
-        $genre = Genre::create($request->only(['name', 'type']));
+        $genre = Genre::create($request->only(['name', 'type', 'status']));
         
         return new GenreResource($genre);
     }
@@ -92,9 +93,10 @@ class GenreController extends Controller
         $request->validate([
             'name' => 'sometimes|string|max:255',
             'type' => 'sometimes|in:movie,tv',
+            'status' => 'sometimes|in:active,inactive',
         ]);
 
-        $genre->update($request->only(['name', 'type']));
+        $genre->update($request->only(['name', 'type', 'status']));
         return new GenreResource($genre);
     }
 
@@ -155,10 +157,11 @@ class GenreController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Genre $genre)
+    public function show($id)
     {
         try {
-            return response()->json($genre, 200);
+            $genre = Genre::withCount('movies')->findOrFail($id);
+            return new GenreResource($genre);
         } catch(Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -210,4 +213,45 @@ class GenreController extends Controller
     //         ], 500);
     //     }
     // }
+
+    /**
+     * Bulk delete genres (admin only)
+     * Expects: { "ids": [1,2,3] }
+     */
+    public function batchDestroy(Request $request)
+    {
+        // Restrict to admins (optional)
+        // if (!$request->user() || !$request->user()->is_admin) {
+        //     return response()->json(['error' => 'Unauthorized'], 403);
+        // }
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:genres,id',
+        ]);
+
+        $ids = $request->input('ids');
+        $deleted = [];
+        $failed = [];
+
+        $genres = Genre::whereIn('id', $ids)->get();
+        foreach ($genres as $genre) {
+            try {
+                // Detach related movies (optional, cleans up pivot table)
+                $genre->movies()->detach();
+                $genre->delete();
+                $deleted[] = $genre->id;
+            } catch (\Exception $e) {
+                $failed[] = [
+                    'id' => $genre->id,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+        return response()->json([
+            'message' => 'Genre batch delete completed successfully',
+            'deleted' => $deleted,
+            'failed' => $failed,
+        ]);
+    }
 }

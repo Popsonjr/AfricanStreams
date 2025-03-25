@@ -26,6 +26,7 @@ use App\Http\Controllers\WatchlistController;
 use App\Models\Rating;
 use App\Models\Watchlist;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ActivityLogController;
 
 use Illuminate\Http\Request;
 
@@ -76,6 +77,16 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/watch-history/{watchHistory}', [WatchHistoryController::class, 'show'])->name('watch-history.show');
     Route::post('/watch-history/{watchHistory}/progress', [WatchHistoryController::class, 'updateProgress'])->name('watch-history.updateProgress');
     Route::delete('/watch-history/{watchHistory}', [WatchHistoryController::class, 'destroy'])->name('watch-history.destroy');
+
+    // Get activity logs for the authenticated user
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+    // Get activity summary for the authenticated user
+    Route::get('/activity-logs/summary', [ActivityLogController::class, 'summary']);
+    // Get activity logs for a specific user (admin only)
+    // Route::get('/activity-logs/{user}', [ActivityLogController::class, 'show']);
+
+    // Log that a user watched a movie (frontend-triggered)
+    Route::post('/movies/{movie}/watched', [MovieController::class, 'logWatched']);
 });
 
 Route::prefix('')->group(function () {
@@ -149,11 +160,6 @@ Route::prefix('admin')->group(function () {
     Route::post('/password/reset-request', [AdminAuthController::class, 'sendResetLink']);
     Route::post('/password/reset', [AdminAuthController::class, 'resetPassword']);
     
-    
-
-    
-    Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('genres', GenreController::class);
 
     Route::middleware('auth:admin')->group(function () {
         Route::get('/get/all', [AdminAuthController::class, 'getAllAdmins']);
@@ -169,7 +175,10 @@ Route::prefix('admin')->group(function () {
         
         Route::post('/genres', [GenreController::class, 'store']);
         Route::put('/genres', [GenreController::class, 'update']);
+        // Bulk delete genres
+        Route::delete('/genres/delete/batch', [GenreController::class, 'batchDestroy']);
         Route::delete('/genre', [GenreController::class, 'delete']);
+
 
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories', [CategoryController::class, 'update']);
@@ -180,7 +189,13 @@ Route::prefix('admin')->group(function () {
         Route::delete('/movies/batch', [MovieController::class, 'batchDestroy']);
         Route::delete('/movies', [MovieController::class, 'delete']);
 
+        // Admin: Get any user's activity logs
+        Route::get('/activity-logs/user/{user_id}', [ActivityLogController::class, 'userLogs']);
+
     });
+
+    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('genres', GenreController::class);
 
     Route::apiResource('movies', MovieController::class);
     Route::get('movies/{id}/related', [MovieController::class, 'related']);

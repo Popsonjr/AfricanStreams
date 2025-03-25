@@ -6,7 +6,7 @@ return [
 
 'allowed_methods' => ['*'],
 
-'allowed_origins' => ['https://frontend.africanstreams.com','http://localhost:4222'],
+'allowed_origins' => ['https://africanstreams.com', 'africanstreams.com', 'https://frontend.africanstreams.com','http://localhost:4222'],
 
 'allowed_origins_patterns' => [],
 

@@ -18,6 +18,12 @@ class GenreResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'type' => $this->type,
+            'status' => $this->status,
+            'movies_count' => $this->when(isset($this->movies_count), $this->movies_count, function() {
+                return $this->movies()->count();
+            }),
+            'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->toIso8601String() : null,
         ];
     }
 }

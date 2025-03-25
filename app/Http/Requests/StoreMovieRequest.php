@@ -27,7 +27,9 @@ class StoreMovieRequest extends FormRequest
             // 'poster_path' => 'nullable|string|max:255',
             // 'backdrop_path' => 'nullable|string|max:255',
             'poster' => 'nullable|file|mimes:jpg,png,jpeg|max:50120', // Max 50MB
+            'poster_url' => 'nullable|string|url',
             'backdrop' => 'nullable|file|mimes:jpg,png,jpeg|max:50120',
+            'backdrop_url' => 'nullable|string|url',
             'release_date' => 'nullable|date',
             'vote_average' => 'nullable|numeric|min:0|max:10',
             'vote_count' => 'nullable|integer|min:0',
@@ -61,9 +63,11 @@ class StoreMovieRequest extends FormRequest
             'video' => 'nullable|in:true,false,1,0',
             'genres' => 'nullable|array',
             'genres.*' => 'exists:genres,id',
-            'movie_file' => 'required|file|mimes:mp4,avi,mov|max:4096000',
+            'movie_file' => 'nullable|file|mimes:mp4,avi,mov|max:4096000',
+            'movie_file_url' => 'nullable|string|url',
             // 'trailer_url' => 'required|string',
-            'trailer_url' => 'required|file|mimes:mp4,avi,mov|max:4096000',
+            'trailer' => 'nullable|file|mimes:mp4,avi,mov|max:4096000',
+            'trailer_url' => 'nullable|string|url',
         ];
     }
 }

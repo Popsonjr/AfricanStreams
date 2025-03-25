@@ -19,6 +19,11 @@ class UserResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
+            'status' => $this->status,
+            'subscribed' => $this->subscribed,
+            'last_activity' => $this->lastActivityLog
+                ? ($this->lastActivityLog->activity_date . ' ' . $this->lastActivityLog->activity_time)
+                : null,
         ];
     }
 }

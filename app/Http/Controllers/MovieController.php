@@ -11,12 +11,15 @@ use App\Http\Resources\ReviewResource;
 use App\Models\Movie;
 use App\Models\Rating;
 use App\Models\WatchHistory;
+use App\Services\ActivityLogger;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 // use Intervention\Image\Facades\Image;
 
 class MovieController extends Controller
@@ -71,6 +74,9 @@ class MovieController extends Controller
             ],
             ['value' => $request->value]
         );
+
+        // Log the activity
+        ActivityLogger::logMovieRated(Auth::user(), $movie, $request->value);
 
         return response()->json([
             'status_code' => 1,
@@ -169,6 +175,9 @@ class MovieController extends Controller
                     'progress' => 0, // Reset progress if resuming
                 ]
             );
+
+            // Log the activity
+            ActivityLogger::logMovieWatched($request->user(), $movie);
 
             Log::info('Watch history recorded', [
                 'user_id' => $request->user()->id,
@@ -310,10 +319,7 @@ class MovieController extends Controller
 
     public function store(StoreMovieRequest $request) {
         try {
-            // Log::info('StoreMovieRequest Files:', $request->allFiles());
             Log::info('StoreMovieRequest Data:', $request->all());
-            // Log::info('trailer Url :', ['trailer_url' => $request->trailer_url]);
-
             $data = $request->validated();
 
             // Convert array fields to JSON
@@ -322,68 +328,87 @@ class MovieController extends Controller
             $data['belongs_to_collection'] = isset($data['belongs_to_collection']) ? json_encode($data['belongs_to_collection']) : null;
             $data['spoken_languages'] = isset($data['spoken_languages']) ? json_encode($data['spoken_languages']) : null;
 
-            // Store the movie file in public/movies
-            $file = $request->file('movie_file');
-            if (!$file instanceof \Illuminate\Http\UploadedFile || !$file->isValid()) {
-                Log::error('Invalid or missing movie_file', ['file' => $file]);
-                return response()->json([
-                    'message' => 'Movie file is missing or invalid.',
-                    'error' => 'Validation failed',
-                ], 422);
+            // Handle movie file (file or url)
+            $filePath = null;
+            if ($request->hasFile('movie_file')) {
+                $file = $request->file('movie_file');
+                if (!$file instanceof \Illuminate\Http\UploadedFile || !$file->isValid()) {
+                    Log::error('Invalid or missing movie_file', ['file' => $file]);
+                    return response()->json([
+                        'message' => 'Movie file is missing or invalid.',
+                        'error' => 'Validation failed',
+                    ], 422);
+                }
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = 'movies/' . $fileName;
+                $file->move(public_path('movies'), $fileName);
+                Log::info('Movie File Path:', ['file_path' => $filePath]);
+            } elseif ($request->filled('movie_file_url')) {
+                $filePath = $request->input('movie_file_url');
             }
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = 'movies/' . $fileName;
-            $file->move(public_path('movies'), $fileName);
-            Log::info('Movie File Path:', ['file_path' => $filePath]);
 
-            // Store the movie file in public/movies
-            $trailerFile = $request->file('trailer_url');
-            if (!$trailerFile instanceof \Illuminate\Http\UploadedFile || !$trailerFile->isValid()) {
-                Log::error('Invalid or missing trailer_url', ['file' => $trailerFile]);
-                return response()->json([
-                    'message' => 'Trailer Url is missing or invalid.',
-                    'error' => 'Validation failed',
-                ], 422);
+            // Handle trailer (file or url)
+            $trailerFilePath = null;
+            if ($request->hasFile('trailer')) {
+                $trailerFile = $request->file('trailer');
+                if (!$trailerFile instanceof \Illuminate\Http\UploadedFile || !$trailerFile->isValid()) {
+                    Log::error('Invalid or missing trailer', ['file' => $trailerFile]);
+                    return response()->json([
+                        'message' => 'Trailer Url is missing or invalid.',
+                        'error' => 'Validation failed',
+                    ], 422);
+                }
+                $trailerFileName = time() . '_' . $trailerFile->getClientOriginalName();
+                $trailerFilePath = 'trailers/' . $trailerFileName;
+                $trailerFile->move(public_path('trailers'), $trailerFileName);
+                Log::info('Trailer File Path:', ['file_path' => $trailerFilePath]);
+            } elseif ($request->filled('trailer_url')) {
+                $trailerFilePath = $request->input('trailer_url');
             }
-            $trailerFileName = time() . '_' . $trailerFile->getClientOriginalName();
-            $trailerFilePath = 'trailers/' . $trailerFileName;
-            $trailerFile->move(public_path('trailers'), $trailerFileName);
-            Log::info('Trailer File Path:', ['file_path' => $trailerFilePath]);
 
-            // Store poster image
+            // Store poster image (file or url)
             $posterPath = null;
-            $poster = $request->file('poster');
-            if ($poster instanceof \Illuminate\Http\UploadedFile && $poster->isValid()) {
-                $posterName = time() . '_poster_' . $poster->getClientOriginalName();
-                $posterPath = 'movies/posters/' . $posterName;
+            if ($request->hasFile('poster')) {
+                $poster = $request->file('poster');
+                if ($poster instanceof \Illuminate\Http\UploadedFile && $poster->isValid()) {
+                    $posterName = time() . '_poster_' . $poster->getClientOriginalName();
+                    $posterPath = 'movies/posters/' . $posterName;
 
-                $originalDir = public_path('movies/posters');
-                if (!file_exists($originalDir)) {
-                    mkdir($originalDir, 0755, true);
+                    $originalDir = public_path('movies/posters');
+                    if (!file_exists($originalDir)) {
+                        mkdir($originalDir, 0755, true);
+                    }
+                    $poster->move($originalDir, $posterName);
+
+                    // Create w500 and w720 versions
+                    $this->resizeImageVariants($posterPath);
                 }
-                $poster->move($originalDir, $posterName);
-
-                // Create w500 and w720 versions
-                $this->resizeImageVariants($posterPath);
+            } elseif ($request->filled('poster_url')) {
+                $posterPath = $request->input('poster_url');
             }
 
-            // Store backdrop image
+            // Store backdrop image (file or url)
             $backdropPath = null;
-            $backdrop = $request->file('backdrop');
-            if ($backdrop instanceof \Illuminate\Http\UploadedFile && $backdrop->isValid()) {
-                $backdropName = time() . '_backdrop_' . $backdrop->getClientOriginalName();
-                $backdropPath = 'movies/backdrops/' . $backdropName;
+            if ($request->hasFile('backdrop')) {
+                $backdrop = $request->file('backdrop');
+                if ($backdrop instanceof \Illuminate\Http\UploadedFile && $backdrop->isValid()) {
+                    $backdropName = time() . '_backdrop_' . $backdrop->getClientOriginalName();
+                    $backdropPath = 'movies/backdrops/' . $backdropName;
 
-                $originalDir = public_path('movies/backdrops');
-                if (!file_exists($originalDir)) {
-                    mkdir($originalDir, 0755, true);
+                    $originalDir = public_path('movies/backdrops');
+                    if (!file_exists($originalDir)) {
+                        mkdir($originalDir, 0755, true);
+                    }
+                    $backdrop->move($originalDir, $backdropName);
+
+                    // Create w500 and w720 versions
+                    $this->resizeImageVariants($backdropPath);
                 }
-                $backdrop->move($originalDir, $backdropName);
-
-                // Create w500 and w720 versions
-                $this->resizeImageVariants($backdropPath);
+            } elseif ($request->filled('backdrop_url')) {
+                $backdropPath = $request->input('backdrop_url');
             }
 
+            Log::info("About to create movie by this user: ", ['User_id' => JWTAuth::user()]);
             // Create the movie
             $movie = Movie::create([
                 'title' => $data['title'],
@@ -411,7 +436,8 @@ class MovieController extends Controller
                 'video' => filter_var($data['video'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
                 'file_path' => $filePath,
                 'trailer_url' => $trailerFilePath,
-                'user_id' => $request->user()->id,
+                // 'user_id' => $request->user()->id,
+                'user_id' => JWTAuth::user()->id
             ]);
 
             // Sync genres if provided
@@ -422,6 +448,9 @@ class MovieController extends Controller
             // Load relations for response
             $movie->load(['genres']);
 
+            // Log the activity
+            ActivityLogger::logMovieCreated(JWTAuth::user(), $movie);
+
             Log::info('Movie Created:', ['movie_id' => $movie->id, 'file_path' => $movie->trailer_url]);
             return new MovieResource($movie);
         } catch(Exception $e) {
@@ -430,7 +459,6 @@ class MovieController extends Controller
                 'error' => 'Error creating new movie',
             ], 500);
         }
-        
     }
 
     private function resizeImageVariants($relativePath) {
@@ -487,7 +515,6 @@ class MovieController extends Controller
     public function update(UpdateMovieRequest $request, Movie $movie) {
         try {
             Log::info('UpdateMovieRequest Data:', $request->all());
-            
             $data = $request->validated();
 
             // Convert array fields to JSON
@@ -504,92 +531,90 @@ class MovieController extends Controller
                 $data['spoken_languages'] = json_encode($data['spoken_languages']);
             }
 
-            // Handle movie file upload
+            // Handle movie file (file or url)
             if ($request->hasFile('movie_file')) {
                 $file = $request->file('movie_file');
                 if ($file instanceof \Illuminate\Http\UploadedFile && $file->isValid()) {
-                    // Delete old file if exists
                     if ($movie->file_path && file_exists(public_path($movie->file_path))) {
                         unlink(public_path($movie->file_path));
                     }
-                    
                     $fileName = time() . '_' . $file->getClientOriginalName();
                     $filePath = 'movies/' . $fileName;
                     $file->move(public_path('movies'), $fileName);
                     $data['file_path'] = $filePath;
                 }
+            } elseif ($request->filled('movie_file_url')) {
+                $data['file_path'] = $request->input('movie_file_url');
             }
 
-            // Handle movie file upload
-            if ($request->hasFile('trailer_url')) {
-                $trailerFile = $request->file('trailer_url');
+            // Handle trailer (file or url)
+            if ($request->hasFile('trailer')) {
+                $trailerFile = $request->file('trailer');
                 if ($trailerFile instanceof \Illuminate\Http\UploadedFile && $trailerFile->isValid()) {
-                    // Delete old file if exists
                     if ($movie->trailer_url && file_exists(public_path($movie->trailer_url))) {
                         unlink(public_path($movie->trailer_url));
                     }
-                    
                     $trailerFileName = time() . '_' . $trailerFile->getClientOriginalName();
                     $trailerFilePath = 'trailers/' . $trailerFileName;
                     $trailerFile->move(public_path('trailers'), $trailerFileName);
                     $data['trailer_url'] = $trailerFilePath;
                 }
+            } elseif ($request->filled('trailer_url')) {
+                $data['trailer_url'] = $request->input('trailer_url');
             }
 
-            // Handle poster upload
+            // Handle poster (file or url)
             if ($request->hasFile('poster')) {
                 $poster = $request->file('poster');
                 if ($poster instanceof \Illuminate\Http\UploadedFile && $poster->isValid()) {
-                    // Delete old poster and its variants if they exist
                     if ($movie->poster_path) {
                         $this->deleteImageVariants($movie->poster_path);
                     }
-                    
                     $posterName = time() . '_poster_' . $poster->getClientOriginalName();
                     $posterPath = 'movies/posters/' . $posterName;
-                    
                     $originalDir = public_path('movies/posters');
                     if (!file_exists($originalDir)) {
                         mkdir($originalDir, 0755, true);
                     }
                     $poster->move($originalDir, $posterName);
-                    
-                    // Create resized variants
                     $this->resizeImageVariants($posterPath);
                     $data['poster_path'] = $posterPath;
                 }
+            } elseif ($request->filled('poster_url')) {
+                $data['poster_path'] = $request->input('poster_url');
             }
 
-            // Handle backdrop upload
+            // Handle backdrop (file or url)
             if ($request->hasFile('backdrop')) {
                 $backdrop = $request->file('backdrop');
                 if ($backdrop instanceof \Illuminate\Http\UploadedFile && $backdrop->isValid()) {
-                    // Delete old backdrop and its variants if they exist
                     if ($movie->backdrop_path) {
                         $this->deleteImageVariants($movie->backdrop_path);
                     }
-                    
                     $backdropName = time() . '_backdrop_' . $backdrop->getClientOriginalName();
                     $backdropPath = 'movies/backdrops/' . $backdropName;
-                    
                     $originalDir = public_path('movies/backdrops');
                     if (!file_exists($originalDir)) {
                         mkdir($originalDir, 0755, true);
                     }
                     $backdrop->move($originalDir, $backdropName);
-                    
-                    // Create resized variants
                     $this->resizeImageVariants($backdropPath);
                     $data['backdrop_path'] = $backdropPath;
                 }
+            } elseif ($request->filled('backdrop_url')) {
+                $data['backdrop_path'] = $request->input('backdrop_url');
             }
 
             // Handle boolean fields
             if (isset($data['adult'])) {
                 $data['adult'] = filter_var($data['adult'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            } else {
+                $data['adult'] = false;
             }
             if (isset($data['video'])) {
                 $data['video'] = filter_var($data['video'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            } else{
+                $data['video'] = false;
             }
 
             // Update the movie
@@ -602,6 +627,9 @@ class MovieController extends Controller
 
             // Load relations for response
             $movie->load(['genres']);
+
+            // Log the activity
+            ActivityLogger::logMovieUpdated(JWTAuth::user(), $movie);
 
             Log::info('Movie Updated:', ['movie_id' => $movie->id]);
             return new MovieResource($movie);
@@ -637,8 +665,14 @@ class MovieController extends Controller
 
     public function destroy(Movie $movie) {
         try {
+            // Store movie title before deletion for logging
+            $movieTitle = $movie->title;
+            
             // $movie = Movie::findOrFail($id);
             $movie->delete();
+
+            // Log the activity
+            ActivityLogger::logMovieDeleted(JWTAuth::user(), $movieTitle);
 
             return response()->json(['message' => 'Movie deleted successfully']);
         } catch(Exception $e) {
@@ -720,5 +754,40 @@ class MovieController extends Controller
             'deleted' => $deleted,
             'failed' => $failed,
         ]);
+    }
+
+    /**
+     * Log that a user watched a movie (frontend-triggered)
+     * POST /api/movies/{movie}/watched
+     */
+    public function logWatched(Request $request, Movie $movie)
+    {
+        try {
+            $user = $request->user();
+            // Optionally, you can check for progress or other data from the request
+            // $progress = $request->input('progress');
+
+            // Log the activity
+            ActivityLogger::logMovieWatched($user, $movie);
+
+            // Optionally, update or create watch history
+            WatchHistory::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'movie_id' => $movie->id,
+                ],
+                [
+                    'watched_at' => now(),
+                    'progress' => 100, // Assume fully watched
+                ]
+            );
+
+            return response()->json(['message' => 'Watch activity logged successfully']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error logging watch activity',
+            ], 500);
+        }
     }
 }

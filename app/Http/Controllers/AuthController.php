@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Mail\ResetPasswordEmail;
 use App\Mail\VerificationEmail;
 use App\Models\User;
@@ -509,7 +510,7 @@ class AuthController extends Controller
     public function getAllUsers() {
         try {
             // Get only active admins (explicitly exclude soft-deleted) with pagination
-            $users = User::whereNull('deleted_at')->paginate(100);
+            $users = User::with('lastActivityLog')->whereNull('deleted_at')->paginate(100);
             
             // Log the count of active admins
             Log::info('Active user count:', [
@@ -517,7 +518,7 @@ class AuthController extends Controller
             ]);
 
             return response()->json([
-                'users' => $users->items(),
+                'users' => UserResource::collection($users->items()),
                 'pagination' => [
                     'total' => $users->total(),
                     'per_page' => $users->perPage(),
