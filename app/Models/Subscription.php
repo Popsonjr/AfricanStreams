@@ -16,7 +16,7 @@ class Subscription extends Model
         'start_date',
         'end_date',
         'paystack_subscription_code',
-        'paystack_subscription_token',
+        'paystack_customer_code',
     ];
 
     protected $casts = [

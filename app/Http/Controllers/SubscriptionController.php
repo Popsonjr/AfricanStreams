@@ -54,6 +54,7 @@ class SubscriptionController extends Controller
     public function store(StoreSubscriptionRequest $request)
     {
         try {
+            $data = $request->validated();
             $plan = Plan::findOrFail($request->plan_id);
             $user = \App\Models\User::findOrFail($request->user_id);
 
@@ -112,53 +113,58 @@ class SubscriptionController extends Controller
         // }
     }
 
-    public function verify(Request $request)
+    // public function verify(Request $request)
+    // {
+    //     try {
+    //         $reference = $request->query('reference');
+    //         $payment = Paystack::verifyPayment($reference);
+
+    //         if ($payment['data']['status'] === 'success') {
+    //             $user = $request->user();
+    //             $plan = Plan::where('paystack_plan_code', $payment['data']['plan'])->firstOrFail();
+
+    //             $subscription = Subscription::create([
+    //                 'user_id' => $user->id,
+    //                 'plan_id' => $plan->id,
+    //                 'status' => 'active',
+    //                 'start_date' => now(),
+    //                 'end_date' => now()->addMonths($plan->duration_months),
+    //                 'paystack_subscription_code' => $payment['data']['subscription_code'],
+    //                 'paystack_subscription_token' => $payment['data']['token'],
+    //             ]);
+
+    //             return new SubscriptionResource($subscription);
+    //         }
+
+    //         return response()->json(['message' => 'Payment failed'], 400);
+    //     } catch (\Exception $e) {
+    //         Log::error('Error verifying subscription', ['exception' => $e->getMessage()]);
+    //         return response()->json(['message' => 'Error verifying subscription'], 500);
+    //     }
+    // }
+    public function show(Subscription $subscription)
     {
         try {
-            $reference = $request->query('reference');
-            $payment = Paystack::verifyPayment($reference);
-
-            if ($payment['data']['status'] === 'success') {
-                $user = $request->user();
-                $plan = Plan::where('paystack_plan_code', $payment['data']['plan'])->firstOrFail();
-
-                $subscription = Subscription::create([
-                    'user_id' => $user->id,
-                    'plan_id' => $plan->id,
-                    'status' => 'active',
-                    'start_date' => now(),
-                    'end_date' => now()->addMonths($plan->duration_months),
-                    'paystack_subscription_code' => $payment['data']['subscription_code'],
-                    'paystack_subscription_token' => $payment['data']['token'],
-                ]);
-
-                return new SubscriptionResource($subscription);
+            if (!auth('api')->user() && $subscription->user_id !== auth('api')->id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
             }
 
-            return response()->json(['message' => 'Payment failed'], 400);
+            return response()->json($subscription->load(['plan', 'user']));
         } catch (\Exception $e) {
-            Log::error('Error verifying subscription', ['exception' => $e->getMessage()]);
-            return response()->json(['message' => 'Error verifying subscription'], 500);
+            Log::error('Failed to fetch subscription', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to fetch subscription'], 500);
         }
     }
 
     public function destroy(Subscription $subscription)
     {
         try {
-            if ($subscription->user_id !== Auth::id()) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            Paystack::disableSubscription([
-                'code' => $subscription->paystack_subscription_code,
-                'token' => $subscription->paystack_subscription_token,
-            ]);
-
-            $subscription->update(['status' => 'canceled', 'end_date' => now()]);
-            return response()->json(['message' => 'Subscription canceled']);
+            // Note: Paystack subscriptions can be disabled, not deleted
+            $subscription->update(['status' => 'canceled']);
+            return response()->json(['message' => 'Subscription canceled successfully']);
         } catch (\Exception $e) {
-            Log::error('Error canceling subscription', ['exception' => $e->getMessage()]);
-            return response()->json(['message' => 'Error canceling subscription'], 500);
+            Log::error('Failed to cancel subscription', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to cancel subscription'], 500);
         }
     }
 

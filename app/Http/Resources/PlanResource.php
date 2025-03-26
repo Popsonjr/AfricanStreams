@@ -21,6 +21,7 @@ class PlanResource extends JsonResource
             'amount' => $this->amount,
             'interval' => $this->interval,
             'active' => $this->active,
+            'paystack_plan_code' => $this->paystack_plan_code,
         ];
     }
 }

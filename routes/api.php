@@ -160,7 +160,7 @@ Route::prefix('admin')->group(function () {
 });
 
 Route::post('/pay', [PaymentController::class, 'redirectToGateway'])->name('pay')->middleware('auth:api');
-Route::get('/payment/callback', [PaymentController::class, 'handleGatewayCallback'])->name('payment.callback');
+// Route::get('/payment/callback', [PaymentController::class, 'handleGatewayCallback'])->name('payment.callback');
 
 // Plan routes
 Route::get('plans', [PlanController::class, 'index'])->name('plans.index');

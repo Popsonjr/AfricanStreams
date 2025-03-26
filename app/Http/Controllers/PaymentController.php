@@ -72,6 +72,7 @@ class PaymentController extends Controller
             $response = $this->paystackService->verifyTransaction($reference);
             if ($response['status'] && $response['data']['status'] === 'success') {
                 $customerCode = $response['data']['customer']['customer_code'];
+                Log::info('api info', ['info' => auth('api'), 'id' => auth('api')->id()]);
                 $subscription = Subscription::where('user_id', auth('api')->id())->latest()->first();
                 if (!$subscription) {
                     return response()->json(['message' => 'Subscription not found'], 404);
