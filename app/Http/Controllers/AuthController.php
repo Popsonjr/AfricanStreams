@@ -46,9 +46,9 @@ class AuthController extends Controller
             $user->update([
                 'verification_token' => $token
             ]);
-
+            Log::info('frontend url', ['url' => env('APP_FRONTEND')]);
             // Mail::to($user->email)->queue(new VerificationEmail($token));
-            Mail::to($user->email)->send(new VerificationEmail($token));
+            Mail::to($user->email)->send(new VerificationEmail($token, env('APP_FRONTEND')));
 
             return response()->json(compact('user'), 201);
 
@@ -260,7 +260,7 @@ class AuthController extends Controller
                 'verification_token' => $token
             ]);
 
-            Mail::to($user->email)->send(new VerificationEmail($token));
+            Mail::to($user->email)->send(new VerificationEmail($token, env('APP_FRONTEND')));
 
             return response()->json([
                 'message' => 'Verification email sent',
@@ -286,9 +286,9 @@ class AuthController extends Controller
 
             Log::info('send reset link ', [
                 'Token' => $token,
-                'Hashed Token' => Hash::make($token)
+                'Hashed Token' => Hash::make($token),
             ]);
-            Mail::to($request->email)->queue(new ResetPasswordEmail($token));
+            Mail::to($request->email)->send(new ResetPasswordEmail($token, env('APP_FRONTEND')));
 
             return response()->json(['message' => 'Reset link has been sent to your email.']);
         } catch (Exception $e) {

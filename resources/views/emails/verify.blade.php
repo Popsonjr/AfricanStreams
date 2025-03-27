@@ -1,6 +1,3 @@
-<!-- <p>Click the link below to verify your email:</p>
-<a href="{{ env('APP_URL') }}/verify?token={{ $token }}">Verify Email</a> -->
-
 <!DOCTYPE html>
 <html>
 
@@ -46,11 +43,11 @@
             <p>Thank you for signing up. Please verify your email address to complete your registration and get started:
             </p>
 
-            <a href="{{ env('APP_FRONTEND') }}/#/verify-email?token={{ $token }}" class="button">Verify Email</a>
+            <a href="{{ $frontendUrl }}/#/verify-email?token={{ $token }}" class="button">Verify Email</a>
 
             <p>If the button above doesn't work, you can also copy and paste this link into your browser:</p>
             <p><a
-                    href="{{ env('APP_FRONTEND') }}/#/verify-email?token={{ $token }}">{{ env('APP_FRONTEND') }}/verify?token={{ $token }}</a>
+                    href="{{ $frontendUrl }}/#/verify-email?token={{ $token }}">{{ $frontendUrl }}/verify?token={{ $token }}</a>
             </p>
 
             <p>If you did not create an account with us, you can safely ignore this email.</p>

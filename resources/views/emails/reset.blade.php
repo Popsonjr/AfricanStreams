@@ -1,6 +1,3 @@
-<!-- <p>Click the link below to reset your password:</p>
-<a href="{{ env('APP_URL') }}/reset-password?token={{$token}}">Reset Password</a> -->
-
 <!DOCTYPE html>
 <html>
 
@@ -45,11 +42,12 @@
 
             <p>We received a request to reset your password. Click the button below to continue:</p>
 
-            <a href="{{ env('APP_FRONTEND') }}/reset-password?token={{ $token }}" class="button">Reset Password</a>
+            <a href="{{ $frontendUrl }}/reset-password?token={{ $token }}" class="button">Reset
+                Password</a>
 
             <p>If the button doesn’t work, copy and paste the following link into your browser:</p>
             <p><a
-                    href="{{ env('APP_FRONTEND') }}/reset-password?token={{ $token }}">{{ env('APP_FRONTEND') }}/reset-password?token={{ $token }}</a>
+                    href="{{ $frontendUrl }}/reset-password?token={{ $token }}">{{ $frontendUrl }}/reset-password?token={{ $token }}</a>
             </p>
 
             <p>If you didn’t request a password reset, no action is needed. Your account is safe.</p>

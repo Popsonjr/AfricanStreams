@@ -14,19 +14,24 @@ class ResetPasswordEmail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public $token;
+    public $frontendUrl;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($token)
+    public function __construct($token, $frontendUrl)
     {
         $this->token = $token;
+        $this->frontendUrl = $frontendUrl;
     }
 
     public function build() {
         return $this->subject('Reset Your Password')
         ->view('emails.reset')
-        ->with(['token' => $this->token]);
+        ->with([
+            'token' => $this->token,
+            'frontendUrl' => $this->frontendUrl,
+        ]);
     }
 
     // /**

@@ -130,4 +130,5 @@ return [
     //     Unicodeveloper\Paystack\PaystackServiceProvider::class,
     // ],
 
+    'frontend_url' => env('APP_FRONTEND', 'https://frontend.africanstreams.com'),
 ];

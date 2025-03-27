@@ -14,19 +14,24 @@ class VerificationEmail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public $token;
+    public $frontendUrl;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($token)
+    public function __construct($token, $frontendUrl)
     {
         $this->token = $token;
+        $this->frontendUrl = $frontendUrl;
     }
 
     public function build() {
         return $this->subject('Verify Your Email')
         ->view('emails.verify')
-        ->with(['token' => $this->token]);
+        ->with([
+            'token' => $this->token,
+            'frontendUrl' => $this->frontendUrl,
+        ]);
     }
 
     // /**
