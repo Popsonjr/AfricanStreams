@@ -244,7 +244,7 @@ class AdminAuthController extends Controller
                 'verification_token' => $token
             ]);
 
-            Mail::to($admin->email)->queue(new VerificationEmail($token));
+            Mail::to($admin->email)->send(new VerificationEmail($token));
 
             return response()->json([
                 'message' => 'Verification email sent',
@@ -267,7 +267,7 @@ class AdminAuthController extends Controller
                     'created_at' => now()
                 ]
             );
-            Mail::to($request->email)->queue(new ResetPasswordEmail($token));
+            Mail::to($request->email)->send(new ResetPasswordEmail($token));
 
             return response()->json(['message' => 'Reset link sent']);
         } catch (Exception $e) {

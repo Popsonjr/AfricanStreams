@@ -41,6 +41,15 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
+
+            $token = Str::random(64);
+            $user->update([
+                'verification_token' => $token
+            ]);
+
+            // Mail::to($user->email)->queue(new VerificationEmail($token));
+            Mail::to($user->email)->send(new VerificationEmail($token));
+
             return response()->json(compact('user'), 201);
 
             // $token = JWTAuth::fromUser($user);
@@ -50,7 +59,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while registering user'
-            ], 500);
+            ], 403);
         }
 
     }
@@ -251,7 +260,7 @@ class AuthController extends Controller
                 'verification_token' => $token
             ]);
 
-            Mail::to($user->email)->queue(new VerificationEmail($token));
+            Mail::to($user->email)->send(new VerificationEmail($token));
 
             return response()->json([
                 'message' => 'Verification email sent',

@@ -46,11 +46,13 @@ class PaymentController extends Controller
                     'plan_id' => $plan->id,
                     'paystack_subscription_code' => null,
                     'paystack_customer_code' => null,
+                    'paystack_reference' => $reference,
                     'status' => 'pending',
                 ]);
 
                 return response()->json([
                     'authorization_url' => $response['data']['authorization_url'],
+                    'reference' => $reference,
                 ]);
             }
 
@@ -71,12 +73,13 @@ class PaymentController extends Controller
 
             $response = $this->paystackService->verifyTransaction($reference);
             if ($response['status'] && $response['data']['status'] === 'success') {
-                $customerCode = $response['data']['customer']['customer_code'];
-                Log::info('api info', ['info' => auth('api'), 'id' => auth('api')->id()]);
-                $subscription = Subscription::where('user_id', auth('api')->id())->latest()->first();
+                $subscription = Subscription::where('paystack_reference', $reference)->first();
                 if (!$subscription) {
+                    Log::error('Subscription not found for reference', ['reference' => $reference]);
                     return response()->json(['message' => 'Subscription not found'], 404);
                 }
+
+                $customerCode = $response['data']['customer']['customer_code'];
                 $plan = $subscription->plan;
 
                 $subscriptionResponse = $this->paystackService->createSubscription(
@@ -88,6 +91,7 @@ class PaymentController extends Controller
                     $subscription->update([
                         'paystack_subscription_code' => $subscriptionResponse['data']['subscription_code'],
                         'paystack_customer_code' => $customerCode,
+                        'paystack_reference' => null, // Clear reference after use
                         'status' => 'active',
                         'start_date' => now(),
                         'end_date' => now()->addMonth(),
