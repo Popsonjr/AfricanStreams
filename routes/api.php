@@ -17,11 +17,15 @@ Route::prefix('auth')->group(function () {
     Route::post('/email/verify', [AuthController::class, 'verifyEmail']);
     Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::post('/me', [AuthController::class, 'me'])->middleware('auth:api');
     Route::post('/get-user', [AuthController::class, 'getUser']);
     Route::post('/password/reset-request', [AuthController::class, 'sendResetLink']);
     Route::post('/password/reset', [AuthController::class, 'resetPassword']);
-    Route::post('/password/change', [AuthController::class, 'changePassword'])->middleware('auth:api');
+    
+
+    Route::middleware('auth:api')->group(function () {
+        Route::post('/me', [AuthController::class, 'me']);
+        Route::post('/password/change', [AuthController::class, 'changePassword']);
+    });
     
     // Route::get('facebook/redirect', AuthController::class, 'redirectToFacebook');
     // Route::get('facebook/callback', AuthController::class, 'handleFacebookCallback');
@@ -34,20 +38,35 @@ Route::prefix('admin')->group(function () {
     Route::post('/email/verify', [AdminAuthController::class, 'verifyEmail']);
     Route::post('/email/resend', [AdminAuthController::class, 'resendVerificationEmail']);
     Route::post('/refresh', [AdminAuthController::class, 'refresh']);
-    Route::post('/me', [AdminAuthController::class, 'me'])->middleware('auth:admin');
-    Route::post('/get-user', [AdminAuthController::class, 'getUser'])->middleware('auth:admin');
     Route::post('/password/reset-request', [AdminAuthController::class, 'sendResetLink']);
     Route::post('/password/reset', [AdminAuthController::class, 'resetPassword']);
-    Route::post('/password/change', [AdminAuthController::class, 'changePassword'])->middleware('auth:admin');
-
-
     
     Route::apiResource('movies', MovieController::class);
-    Route::post('/movies', [MovieController::class, 'store'])->middleware('auth:admin');
     Route::get('movies/{id}/related', [MovieController::class, 'related']);
+    
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('genres', GenreController::class);
+
+    Route::middleware('auth:admin')->group(function () {
+        Route::post('/me', [AdminAuthController::class, 'me']);
+        Route::post('/get-user', [AdminAuthController::class, 'getUser']);
+        Route::post('/password/change', [AdminAuthController::class, 'changePassword']);
+        
+        Route::post('/genres', [GenreController::class, 'store']);
+        Route::put('/genres', [GenreController::class, 'update']);
+        Route::delete('/genre', [GenreController::class, 'delete']);
+
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories', [CategoryController::class, 'update']);
+        Route::delete('/categories', [CategoryController::class, 'delete']);
+        
+        Route::post('/movies', [MovieController::class, 'store']);
+        Route::put('/movies', [MovieController::class, 'update']);
+        Route::delete('/movies', [MovieController::class, 'delete']);
+    });
 });
+
+
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/series/{id}/seasons', [SeasonController::class, 'index']);

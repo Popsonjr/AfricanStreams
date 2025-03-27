@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Log;
 
 class UpdateMovieRequest extends FormRequest
 {
@@ -21,21 +22,22 @@ class UpdateMovieRequest extends FormRequest
      */
     public function rules(): array
     {
+        Log::info('Validation rules applied');
         return [
-            'title' => 'sometimes|string|max:255',
+            'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'release_date' => 'nullable|date',
             'duration' => 'nullable|string|max:50',
             'cast' => 'nullable|string',
-            'genre_id' => 'sometimes|exists:genres,id',
+            'genre_id' => 'nullable|exists:genres,id',
             'trailer_uri' => 'nullable|url',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
             'standard_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
             'thumbnail_image' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
-            'type' => 'sometimes|in:movie,series',
-            'category_ids' => 'array',
+            'type' => 'nullable|in:movie,series',
+            'category_ids' => 'nullable|array',
             'category_ids.*' => 'exists:categories,id',
-            'related_movie_ids' => 'array',
+            'related_movie_ids' => 'nullable|array',
             'related_movie_ids.*' => 'exists:movies,id',
         ];
     }

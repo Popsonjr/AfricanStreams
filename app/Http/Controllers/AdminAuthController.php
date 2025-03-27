@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -323,7 +324,7 @@ class AdminAuthController extends Controller
             }
 
             $admin->update([
-                'password' => Hash::make($request->new_password)
+                'password' => Hash::make($request->password)
             ]);
 
             return response()->json(['message' => 'Password changed successfully']);

@@ -7,7 +7,9 @@ use App\Http\Requests\UpdateMovieRequest;
 use App\Models\Movie;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class MovieController extends Controller
 {
@@ -67,9 +69,17 @@ class MovieController extends Controller
 
     //Fetch Related Movies
     public function related($id) {
-        $movie = Movie::findOrFail($id);
-        $relatedMovies = $movie->relatedMovies()->with('categories', 'genre')->get();
-        return response()->json($relatedMovies);
+        try {
+            
+            $movie = Movie::findOrFail($id);
+            $relatedMovies = $movie->relatedMovies()->with('categories', 'genre')->get();
+            return response()->json($relatedMovies);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error getting related movies',
+            ], 500);
+        }
     }
 
     public function store(StoreMovieRequest $request) {
@@ -106,19 +116,56 @@ class MovieController extends Controller
         
     }
 
-    public function update(UpdateMovieRequest $request, $id) {
-        $movie = Movie::findOrFail($id);
-        $movie->update($request->validated());
-        $movie->categories()->sync($request->categories);
+    public function update(UpdateMovieRequest $request, Movie $movie) {
+        // public function update(Request $request, Movie $movie) {
+        try {
+            $updateData = array_filter($request->validated(), fn($value) => !is_null($value));
+            if (!isset($updateData['category_ids'])) {
+                unset($updateData['category_ids']);
+            }
+            if (!isset($updateData['related_movie_ids'])) {
+                unset($updateData['related_movie_ids']);
+            }
 
-        return response()->json($movie);
+            // $updateData = $request->only(array_keys($request->rules()));
+            Log::info('movie to update', [
+                $updateData
+            ]);
+            if (!empty($updateData)) {
+                $movie->update($updateData);
+            }
+
+            // $movie = Movie::findOrFail($id);
+            // $movie->update($request->validated());
+            if($request->has('category_ids')) {
+                $movie->categories()->sync($request->categories);
+            }
+            if($request->has('related_movie_ids')) {
+                $movie->relatedMovies()->sync($request->related_movie_ids);
+            }
+            
+
+            return response()->json($movie);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while updating movie',
+            ], 500);
+        }   
     }
 
-    public function destroy($id) {
-        $movie = Movie::findOrFail($id);
-        $movie->delete();
+    public function destroy(Movie $movie) {
+        try {
+            // $movie = Movie::findOrFail($id);
+            $movie->delete();
 
-        return response()->json(['message' => 'Movie deleted successfully']);
+            return response()->json(['message' => 'Movie deleted successfully']);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error deleting movie',
+            ], 500);
+        }
     }
 
     /**
