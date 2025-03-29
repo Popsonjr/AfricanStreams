@@ -10,6 +10,7 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ListController;
 use App\Http\Controllers\ListItemController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\RatingController;
@@ -182,6 +183,9 @@ Route::middleware('auth:admin')->group(function () {
 
 // Webhook route (no auth)
 Route::post('subscriptions/webhook', [SubscriptionController::class, 'handleWebhook'])->name('subscriptions.webhook');
+
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+Route::get('/newsletter/subscribers', [NewsletterController::class, 'index']);
 
 //Route For Series
 // Route::prefix('series')->group(function() {
