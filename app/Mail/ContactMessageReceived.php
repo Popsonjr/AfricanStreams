@@ -24,7 +24,7 @@ class ContactMessageReceived extends Mailable
 
     public function build()
     {
-        return $this->subject('Your Message to AfricanStreams')
+        return $this->subject($this->subject)
                     ->view('emails.contact.received');
     }
 }

@@ -16,14 +16,14 @@ class ContactMessageAdmin extends Mailable
     public $fullname;
     public $email;
     public $subject;
-    public $message;
+    public $userMessage;
     public $company;
 
-    public function __construct(string $fullname, string $email, string $subject, string $message, string $company) {
+    public function __construct(string $fullname, string $email, string $subject, string $userMessage, string $company) {
         $this->fullname = $fullname;
         $this->email = $email;
         $this->subject = $subject;
-        $this->message = $message;
+        $this->userMessage = $userMessage;
         $this->company = $company;
     }
 

@@ -15,7 +15,7 @@
             <p><strong>Company:</strong> {{ $company }}</p>
             @endif
             <p><strong>Message:</strong></p>
-            <p style="background: #f9f9f9; padding: 10px; border-radius: 4px;">{{ $message }}</p>
+            <p style="background: #f9f9f9; padding: 10px; border-radius: 4px;">{{ $userMessage }}</p>
             <p style="margin-top: 20px;">Please respond to this inquiry promptly.</p>
             <p>Best regards,<br>AfricanStreams System</p>
         </div>
