@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EpisodeController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
@@ -186,6 +187,9 @@ Route::post('subscriptions/webhook', [SubscriptionController::class, 'handleWebh
 
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
 Route::get('/newsletter/subscribers', [NewsletterController::class, 'index']);
+
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::get('/contact/messages', [ContactController::class, 'index'])->name('contact.index');
 
 //Route For Series
 // Route::prefix('series')->group(function() {
