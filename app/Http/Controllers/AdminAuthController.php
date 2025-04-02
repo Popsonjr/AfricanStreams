@@ -77,7 +77,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while registering admin user'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -116,7 +116,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Could not create token'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -133,7 +133,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Could not logout',
-            ], 500);
+            ], 400);
         }
     }
     
@@ -150,7 +150,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'error' => 'Failed to refresh token, please try again',
                 'message' => $e->getMessage()
-            ], 500);
+            ], 400);
         }
         
     }
@@ -191,7 +191,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while redirecting to Google'
-            ], 500);
+            ], 400);
         }
     }
     
@@ -222,7 +222,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $th->getMessage(),
                 'error' => 'Error while handlong google callback'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -254,7 +254,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while verifying email'
-            ], 500);
+            ], 400);
         }
     }
     
@@ -294,7 +294,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $th->getMessage(),
                 'error' => 'Error whike resending verification email'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -318,7 +318,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while resetting link'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -353,7 +353,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while resetting password'
-            ], 500);
+            ], 400);
         }
     }
     
@@ -379,7 +379,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while changing password'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -471,7 +471,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while updating admin profile'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -532,7 +532,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while deleting admin account'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -644,7 +644,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while fetching admin users'
-            ], 500);
+            ], 400);
         }
     }
 
@@ -728,7 +728,7 @@ class AdminAuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while updating admin profile'
-            ], 500);
+            ], 400);
         }
     }
 }
