@@ -418,7 +418,6 @@ class AdminAuthController extends Controller
                 return $value !== null;
             });
 
-
             // Handle profile image upload if present
             if ($request->hasFile('profile_image')) {
                 Log::info("inside file block");
