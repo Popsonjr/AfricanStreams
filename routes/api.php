@@ -156,6 +156,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/me', [AdminAuthController::class, 'me']);
         Route::post('/get-user', [AdminAuthController::class, 'getUser']);
         Route::post('/password/change', [AdminAuthController::class, 'changePassword']);
+        Route::put('/update', [AdminAuthController::class, 'update']);
         
         Route::post('/genres', [GenreController::class, 'store']);
         Route::put('/genres', [GenreController::class, 'update']);

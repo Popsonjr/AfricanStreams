@@ -8,3 +8,8 @@
 -ADD custom flag to identify our movies, african streams = true
 -FIx Queue not going through
 -Send Email to customer after subsscription
+
+
+
+ADMIN
+-add phone number field
