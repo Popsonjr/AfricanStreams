@@ -12,6 +12,22 @@ use Illuminate\Validation\Rule;
 class GenreController extends Controller
 {
 
+    public function index() {
+        $genres = Genre::paginate(100);
+        
+        return response()->json([
+            'genres' => $genres->items(),
+            'pagination' => [
+                'total' => $genres->total(),
+                'per_page' => $genres->perPage(),
+                'current_page' => $genres->currentPage(),
+                'last_page' => $genres->lastPage(),
+                'to' => $genres->lastItem(),
+                'from' => $genres->firstItem()
+            ]
+        ]);
+    }
+
     /**
      * List all movie genres.
      *
@@ -57,6 +73,7 @@ class GenreController extends Controller
         ]);
 
         $genre = Genre::create($request->only(['name', 'type']));
+        
         return new GenreResource($genre);
     }
 
@@ -135,20 +152,20 @@ class GenreController extends Controller
     //     }
     // }
 
-    // /**
-    //  * Display the specified resource.
-    //  */
-    // public function show(Genre $genre)
-    // {
-    //     try {
-    //         return response()->json($genre, 200);
-    //     } catch(Exception $e) {
-    //         return response()->json([
-    //             'message' => $e->getMessage(),
-    //             'error' => 'Error while getting genre'
-    //         ], 500);
-    //     }
-    // }
+    /**
+     * Display the specified resource.
+     */
+    public function show(Genre $genre)
+    {
+        try {
+            return response()->json($genre, 200);
+        } catch(Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while getting genre'
+            ], 500);
+        }
+    }
 
     // /**
     //  * Update the specified resource in storage.
