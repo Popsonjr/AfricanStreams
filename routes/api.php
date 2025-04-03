@@ -145,6 +145,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/refresh', [AdminAuthController::class, 'refresh']);
     Route::post('/password/reset-request', [AdminAuthController::class, 'sendResetLink']);
     Route::post('/password/reset', [AdminAuthController::class, 'resetPassword']);
+    Route::get('/get/all', [AdminAuthController::class, 'getAllAdmins']);
     
     Route::apiResource('movies', MovieController::class);
     Route::get('movies/{id}/related', [MovieController::class, 'related']);
@@ -157,6 +158,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/get-user', [AdminAuthController::class, 'getUser']);
         Route::post('/password/change', [AdminAuthController::class, 'changePassword']);
         Route::put('/update', [AdminAuthController::class, 'update']);
+        Route::delete('/profile', [AdminAuthController::class, 'delete']);
         
         Route::post('/genres', [GenreController::class, 'store']);
         Route::put('/genres', [GenreController::class, 'update']);

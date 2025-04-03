@@ -474,4 +474,105 @@ class AdminAuthController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Delete admin user
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function delete(Request $request) {
+        try {
+            $request->validate([
+                'admin_id' => 'required|exists:admins,id'
+            ]);
+
+            $adminToDelete = Admin::findOrFail($request->admin_id);
+            $currentAdmin = JWTAuth::user();
+
+            // Log the admin being deleted
+            Log::info('Attempting to delete admin:', [
+                'admin_id' => $adminToDelete->id,
+                'email' => $adminToDelete->email,
+                'current_admin_id' => $currentAdmin->id
+            ]);
+
+            // Prevent self-deletion
+            if ($adminToDelete->id === $currentAdmin->id) {
+                return response()->json([
+                    'message' => 'You cannot delete your own account'
+                ], 403);
+            }
+
+            // Delete profile image if exists
+            if ($adminToDelete->profile_image) {
+                Storage::disk('public')->delete($adminToDelete->profile_image);
+            }
+
+            // Explicitly set deleted_at and save
+            $adminToDelete->deleted_at = now();
+            $adminToDelete->save();
+
+            // Log after deletion
+            Log::info('Admin soft deleted:', [
+                'admin_id' => $adminToDelete->id,
+                'deleted_at' => $adminToDelete->deleted_at
+            ]);
+
+            return response()->json([
+                'message' => 'Admin account deleted successfully'
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Delete Error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while deleting admin account'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all active admin users with pagination
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAllAdmins() {
+        try {
+            // Get only active admins (explicitly exclude soft-deleted) with pagination
+            $admins = Admin::whereNull('deleted_at')->paginate(100);
+            
+            // Log the count of active admins
+            Log::info('Active admin count:', [
+                'total' => $admins->total()
+            ]);
+
+            return response()->json([
+                'admins' => $admins->items(),
+                'pagination' => [
+                    'total' => $admins->total(),
+                    'per_page' => $admins->perPage(),
+                    'current_page' => $admins->currentPage(),
+                    'last_page' => $admins->lastPage(),
+                    'from' => $admins->firstItem(),
+                    'to' => $admins->lastItem()
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Get All Admins Error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while fetching admin users'
+            ], 500);
+        }
+    }
 }
