@@ -21,6 +21,7 @@ use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TvController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\WatchHistoryController;
 use App\Http\Controllers\WatchlistController;
 use App\Models\Rating;
 use App\Models\Watchlist;
@@ -68,6 +69,13 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/account/{account_id}/rating', [RatingController::class, 'store']);
     Route::post('/account/{account_id}/list', [ListController::class, 'store']);
     Route::post('/account/{account_id}/list/{list}/item', [ListItemController::class, 'store']);
+
+
+    Route::get('/watch-history', [WatchHistoryController::class, 'index'])->name('watch-history.index');
+    Route::get('/watch-history/all', [WatchHistoryController::class, 'indexAll'])->name('watch-history.indexAll');
+    Route::get('/watch-history/{watchHistory}', [WatchHistoryController::class, 'show'])->name('watch-history.show');
+    Route::post('/watch-history/{watchHistory}/progress', [WatchHistoryController::class, 'updateProgress'])->name('watch-history.updateProgress');
+    Route::delete('/watch-history/{watchHistory}', [WatchHistoryController::class, 'destroy'])->name('watch-history.destroy');
 });
 
 Route::prefix('')->group(function () {

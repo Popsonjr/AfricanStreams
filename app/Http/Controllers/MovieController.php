@@ -10,6 +10,7 @@ use App\Http\Resources\MovieResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Movie;
 use App\Models\Rating;
+use App\Models\WatchHistory;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -148,10 +149,32 @@ class MovieController extends Controller
         ]);
     }
 
-    public function stream(Movie $movie) {
+    public function stream(Movie $movie, Request $request) {
+        if (!$request->user()->subscriptions()->where('status', 'active')->exists()) {
+            return response()->json(['message' => 'Active subscription required'], 403);
+        }
+        
         if (!$movie->file_path || !Storage::disk('public')->exists($movie->file_path)) {
             return response()->json(['message' => 'Movie file not found'], 404);
         }
+
+        // Record watch history
+            $watchHistory = WatchHistory::updateOrCreate(
+                [
+                    'user_id' => $request->user()->id,
+                    'movie_id' => $movie->id,
+                ],
+                [
+                    'watched_at' => now(),
+                    'progress' => 0, // Reset progress if resuming
+                ]
+            );
+
+            Log::info('Watch history recorded', [
+                'user_id' => $request->user()->id,
+                'movie_id' => $movie->id,
+                'watch_history_id' => $watchHistory->id,
+            ]);
 
         $path = public_path($movie->file_path);
         $size = filesize($path);
