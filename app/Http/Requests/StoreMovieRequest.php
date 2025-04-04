@@ -62,7 +62,8 @@ class StoreMovieRequest extends FormRequest
             'genres' => 'nullable|array',
             'genres.*' => 'exists:genres,id',
             'movie_file' => 'required|file|mimes:mp4,avi,mov|max:4096000',
-            'trailer_url' => 'required|string',
+            // 'trailer_url' => 'required|string',
+            'trailer_url' => 'required|file|mimes:mp4,avi,mov|max:4096000',
         ];
     }
 }

@@ -222,7 +222,7 @@ class MovieController extends Controller
 
             // Get sort field (default to created_at)
             $sortField = $request->query('sort', 'created_at');
-            $allowedSortFields = ['created_at', 'popularity', 'title', 'vote_average', 'release_date'];
+            $allowedSortFields = ['created_at', 'popularity', 'title', 'release_date'];
             
             // Validate sort field
             if (!in_array($sortField, $allowedSortFields)) {
@@ -232,7 +232,7 @@ class MovieController extends Controller
             // Fetch movies sorted by the specified field in descending order
             $movies = Movie::orderBy($sortField, 'desc')
                 ->with(['genres'])
-                ->paginate(200, ['*'], 'page', $request->query('page', 1));
+                ->paginate(50, ['*'], 'page', $request->query('page', 1));
 
             return response()->json([
                 'page' => $movies->currentPage(),
@@ -336,6 +336,20 @@ class MovieController extends Controller
             $file->move(public_path('movies'), $fileName);
             Log::info('Movie File Path:', ['file_path' => $filePath]);
 
+            // Store the movie file in public/movies
+            $trailerFile = $request->file('trailer_url');
+            if (!$trailerFile instanceof \Illuminate\Http\UploadedFile || !$trailerFile->isValid()) {
+                Log::error('Invalid or missing trailer_url', ['file' => $trailerFile]);
+                return response()->json([
+                    'message' => 'Trailer Url is missing or invalid.',
+                    'error' => 'Validation failed',
+                ], 422);
+            }
+            $trailerFileName = time() . '_' . $trailerFile->getClientOriginalName();
+            $trailerFilePath = 'trailers/' . $trailerFileName;
+            $trailerFile->move(public_path('trailers'), $trailerFileName);
+            Log::info('Trailer File Path:', ['file_path' => $trailerFilePath]);
+
             // Store poster image
             $posterPath = null;
             $poster = $request->file('poster');
@@ -396,7 +410,7 @@ class MovieController extends Controller
                 'popularity' => $data['popularity'],
                 'video' => filter_var($data['video'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
                 'file_path' => $filePath,
-                'trailer_url' => $data['trailer_url'],
+                'trailer_url' => $trailerFilePath,
                 'user_id' => $request->user()->id,
             ]);
 
@@ -471,41 +485,154 @@ class MovieController extends Controller
     }
 
     public function update(UpdateMovieRequest $request, Movie $movie) {
-        // public function update(Request $request, Movie $movie) {
         try {
-            $updateData = array_filter($request->validated(), fn($value) => !is_null($value));
-            if (!isset($updateData['category_ids'])) {
-                unset($updateData['category_ids']);
-            }
-            if (!isset($updateData['related_movie_ids'])) {
-                unset($updateData['related_movie_ids']);
-            }
-
-            // $updateData = $request->only(array_keys($request->rules()));
-            Log::info('movie to update', [
-                $updateData
-            ]);
-            if (!empty($updateData)) {
-                $movie->update($updateData);
-            }
-
-            // $movie = Movie::findOrFail($id);
-            // $movie->update($request->validated());
-            if($request->has('category_ids')) {
-                $movie->categories()->sync($request->categories);
-            }
-            if($request->has('related_movie_ids')) {
-                $movie->relatedMovies()->sync($request->related_movie_ids);
-            }
+            Log::info('UpdateMovieRequest Data:', $request->all());
             
+            $data = $request->validated();
 
-            return response()->json($movie);
+            // Convert array fields to JSON
+            if (isset($data['production_companies'])) {
+                $data['production_companies'] = json_encode($data['production_companies']);
+            }
+            if (isset($data['production_countries'])) {
+                $data['production_countries'] = json_encode($data['production_countries']);
+            }
+            if (isset($data['belongs_to_collection'])) {
+                $data['belongs_to_collection'] = json_encode($data['belongs_to_collection']);
+            }
+            if (isset($data['spoken_languages'])) {
+                $data['spoken_languages'] = json_encode($data['spoken_languages']);
+            }
+
+            // Handle movie file upload
+            if ($request->hasFile('movie_file')) {
+                $file = $request->file('movie_file');
+                if ($file instanceof \Illuminate\Http\UploadedFile && $file->isValid()) {
+                    // Delete old file if exists
+                    if ($movie->file_path && file_exists(public_path($movie->file_path))) {
+                        unlink(public_path($movie->file_path));
+                    }
+                    
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $filePath = 'movies/' . $fileName;
+                    $file->move(public_path('movies'), $fileName);
+                    $data['file_path'] = $filePath;
+                }
+            }
+
+            // Handle movie file upload
+            if ($request->hasFile('trailer_url')) {
+                $trailerFile = $request->file('trailer_url');
+                if ($trailerFile instanceof \Illuminate\Http\UploadedFile && $trailerFile->isValid()) {
+                    // Delete old file if exists
+                    if ($movie->trailer_url && file_exists(public_path($movie->trailer_url))) {
+                        unlink(public_path($movie->trailer_url));
+                    }
+                    
+                    $trailerFileName = time() . '_' . $trailerFile->getClientOriginalName();
+                    $trailerFilePath = 'trailers/' . $trailerFileName;
+                    $trailerFile->move(public_path('trailers'), $trailerFileName);
+                    $data['trailer_url'] = $trailerFilePath;
+                }
+            }
+
+            // Handle poster upload
+            if ($request->hasFile('poster')) {
+                $poster = $request->file('poster');
+                if ($poster instanceof \Illuminate\Http\UploadedFile && $poster->isValid()) {
+                    // Delete old poster and its variants if they exist
+                    if ($movie->poster_path) {
+                        $this->deleteImageVariants($movie->poster_path);
+                    }
+                    
+                    $posterName = time() . '_poster_' . $poster->getClientOriginalName();
+                    $posterPath = 'movies/posters/' . $posterName;
+                    
+                    $originalDir = public_path('movies/posters');
+                    if (!file_exists($originalDir)) {
+                        mkdir($originalDir, 0755, true);
+                    }
+                    $poster->move($originalDir, $posterName);
+                    
+                    // Create resized variants
+                    $this->resizeImageVariants($posterPath);
+                    $data['poster_path'] = $posterPath;
+                }
+            }
+
+            // Handle backdrop upload
+            if ($request->hasFile('backdrop')) {
+                $backdrop = $request->file('backdrop');
+                if ($backdrop instanceof \Illuminate\Http\UploadedFile && $backdrop->isValid()) {
+                    // Delete old backdrop and its variants if they exist
+                    if ($movie->backdrop_path) {
+                        $this->deleteImageVariants($movie->backdrop_path);
+                    }
+                    
+                    $backdropName = time() . '_backdrop_' . $backdrop->getClientOriginalName();
+                    $backdropPath = 'movies/backdrops/' . $backdropName;
+                    
+                    $originalDir = public_path('movies/backdrops');
+                    if (!file_exists($originalDir)) {
+                        mkdir($originalDir, 0755, true);
+                    }
+                    $backdrop->move($originalDir, $backdropName);
+                    
+                    // Create resized variants
+                    $this->resizeImageVariants($backdropPath);
+                    $data['backdrop_path'] = $backdropPath;
+                }
+            }
+
+            // Handle boolean fields
+            if (isset($data['adult'])) {
+                $data['adult'] = filter_var($data['adult'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            }
+            if (isset($data['video'])) {
+                $data['video'] = filter_var($data['video'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            }
+
+            // Update the movie
+            $movie->update($data);
+
+            // Sync genres if provided
+            if (isset($data['genres'])) {
+                $movie->genres()->sync($data['genres']);
+            }
+
+            // Load relations for response
+            $movie->load(['genres']);
+
+            Log::info('Movie Updated:', ['movie_id' => $movie->id]);
+            return new MovieResource($movie);
         } catch(Exception $e) {
+            Log::error('Error updating movie:', [
+                'movie_id' => $movie->id,
+                'error' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => $e->getMessage(),
                 'error' => 'Error while updating movie',
             ], 500);
-        }   
+        }
+    }
+
+    private function deleteImageVariants($relativePath) {
+        $fileName = basename($relativePath);
+        $subPath = dirname($relativePath);
+        
+        // Delete original file
+        if (file_exists(public_path($relativePath))) {
+            unlink(public_path($relativePath));
+        }
+        
+        // Delete w500 and w720 variants
+        foreach ([500, 720] as $width) {
+            $variantPath = public_path("w{$width}/" . $subPath . '/' . $fileName);
+            if (file_exists($variantPath)) {
+                unlink($variantPath);
+            }
+        }
     }
 
     public function destroy(Movie $movie) {
@@ -528,5 +655,70 @@ class MovieController extends Controller
     private function storeFile($file, $folder) {
         $path = $file->store($folder, 'public');
         return Storage::url($path);
+    }
+
+    /**
+     * Batch delete movies (admin only)
+     * Expects: { "ids": [1,2,3] }
+     */
+    public function batchDestroy(Request $request)
+    {
+        // Authorize admin (adjust as needed for your app)
+        // if (!$request->user() || !$request->user()->is_admin) {
+        //     return response()->json(['error' => 'Unauthorized'], 403);
+        // }
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:movies,id',
+        ]);
+
+        $ids = $request->input('ids');
+        $deleted = [];
+        $failed = [];
+
+        $movies = Movie::whereIn('id', $ids)->get();
+        foreach ($movies as $movie) {
+            try {
+                // Delete associated files
+                if ($movie->file_path && file_exists(public_path($movie->file_path))) {
+                    unlink(public_path($movie->file_path));
+                }
+                if ($movie->trailer_url && file_exists(public_path($movie->trailer_url))) {
+                    unlink(public_path($movie->trailer_url));
+                }
+                if ($movie->poster_path) {
+                    $this->deleteImageVariants($movie->poster_path);
+                }
+                if ($movie->backdrop_path) {
+                    $this->deleteImageVariants($movie->backdrop_path);
+                }
+                // Detach relationships
+                $movie->genres()->detach();
+                if (method_exists($movie, 'categories')) {
+                    $movie->categories()->detach();
+                }
+                if (method_exists($movie, 'relatedMovies')) {
+                    $movie->relatedMovies()->detach();
+                }
+                // Delete the movie
+                if($movie->delete()) {
+                    $deleted[] = $movie->id;
+                } else {
+                    $failed[] = $movie->id;
+                }
+                
+            } catch (\Exception $e) {
+                $failed[] = [
+                    'id' => $movie->id,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+        return response()->json([
+            'message' => 'Batch movies deleted successfully',
+            'deleted' => $deleted,
+            'failed' => $failed,
+        ]);
     }
 }
