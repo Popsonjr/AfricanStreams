@@ -70,9 +70,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/account/{account_id}/list', [ListController::class, 'store']);
     Route::post('/account/{account_id}/list/{list}/item', [ListItemController::class, 'store']);
 
-
+    Route::post('/watch-history', [WatchHistoryController::class, 'storeOrUpdate'])->name('watch-history.storeOrUpdate');
     Route::get('/watch-history', [WatchHistoryController::class, 'index'])->name('watch-history.index');
-    Route::get('/watch-history/all', [WatchHistoryController::class, 'indexAll'])->name('watch-history.indexAll');
+    
     Route::get('/watch-history/{watchHistory}', [WatchHistoryController::class, 'show'])->name('watch-history.show');
     Route::post('/watch-history/{watchHistory}/progress', [WatchHistoryController::class, 'updateProgress'])->name('watch-history.updateProgress');
     Route::delete('/watch-history/{watchHistory}', [WatchHistoryController::class, 'destroy'])->name('watch-history.destroy');
@@ -132,6 +132,8 @@ Route::middleware('auth:admin')->group(function () {
     Route::post('/genre', [GenreController::class, 'store']);
     Route::put('/genre/{id}', [GenreController::class, 'update']);
     Route::delete('/genre/{id}', [GenreController::class, 'destroy']);
+
+    Route::get('/watch-history/all', [WatchHistoryController::class, 'indexAll']);
 });
 
 Route::prefix('admin')->group(function () {

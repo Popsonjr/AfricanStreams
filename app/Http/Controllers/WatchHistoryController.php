@@ -8,6 +8,43 @@ use Illuminate\Support\Facades\Log;
 
 class WatchHistoryController extends Controller
 {
+
+    public function storeOrUpdate(Request $request)
+    {
+        $request->validate([
+            'movie_id' => 'required|exists:movies,id',
+            'progress' => 'nullable|integer|min:0',
+        ]);
+
+        try {
+            if (!$request->user()->subscriptions()->where('status', 'active')->exists()) {
+                return response()->json(['message' => 'Active subscription required'], 403);
+            }
+
+            $watchHistory = WatchHistory::updateOrCreate(
+                [
+                    'user_id' => $request->user()->id,
+                    'movie_id' => $request->movie_id,
+                ],
+                [
+                    'watched_at' => now(),
+                    'progress' => $request->progress ?? 0,
+                ]
+            );
+
+            Log::info('Watch history created or updated', [
+                'user_id' => $request->user()->id,
+                'movie_id' => $request->movie_id,
+                'watch_history_id' => $watchHistory->id,
+            ]);
+
+            return response()->json($watchHistory->load(['movie.genres']), 201);
+        } catch (\Exception $e) {
+            Log::error('Failed to create or update watch history', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to process watch history'], 500);
+        }
+    }
+
     public function index(Request $request)
     {
         try {
