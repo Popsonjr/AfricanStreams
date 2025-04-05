@@ -67,18 +67,27 @@ class AdminAuthController extends Controller
         try {
             $admin = Admin::where('email', $credentials['email'])->first();
             if(!$admin) {
-                return response()->json(['error' => 'Admin user not found'], 404);
+                return response()->json([
+                    'message' => 'User not found',
+                    'error' => 'User not found'
+                ], 401);
             }
             // If (!$token = JWTAuth::attempt($credentials)) {
                 If (!$token = auth('admin')->attempt($credentials)) {
-                return response()->json(['error' => 'Invalid password'], 401);
+                return response()->json([
+                    'message' => 'Invalid password',
+                    'error' => 'Invalid password'
+                ], 401);
             }
             
             return response()->json([
                 'token' => $token, 
                 'admin' => $admin]);
         } catch (JWTException $e) {
-            return response()->json(['error' => 'Could not create token'], 500);
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Could not create token'
+            ], 500);
         }
     }
 
@@ -125,7 +134,7 @@ class AdminAuthController extends Controller
     public function getUser() {
         try {
             if (! $admin = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['error' => 'Admin user not found'], 404);
+                return response()->json(['error' => 'Admin user not found'], 401);
             }
         } catch (JWTException $e) {
             return response()->json([
@@ -181,7 +190,10 @@ class AdminAuthController extends Controller
             return response()->json(['user' => $admin, 'token' => $token]);
 
         } catch (Exception $th) {
-            return response()->json(['Error' => $th->getMessage()], 500);
+            return response()->json([
+                'message' => $th->getMessage(),
+                'error' => 'Error while handlong google callback'
+            ], 500);
         }
     }
 
@@ -232,7 +244,7 @@ class AdminAuthController extends Controller
             $admin = Admin::where('email', $request->email)->first();
 
             if (!$admin) {
-                return response()->json(['message' => 'Admin user not found'], 404);
+                return response()->json(['message' => 'Admin user not found'], 401);
             }
         
             if ($admin->email_verified_at) {
@@ -250,7 +262,10 @@ class AdminAuthController extends Controller
                 'message' => 'Verification email sent',
             ]);
         } catch (Exception $th) {
-            return response()->json(['Error' => $th->getMessage()], 500);
+            return response()->json([
+                'message' => $th->getMessage(),
+                'error' => 'Error whike resending verification email'
+            ], 500);
         }
     }
 

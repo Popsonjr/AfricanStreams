@@ -79,17 +79,29 @@ class AuthController extends Controller
         try {
             $user = User::where('email', $credentials['email'])->first();
             if(!$user) {
-                return response()->json(['error' => 'User not found'], 404);
+                return response()->json([
+                    'message' => 'User not found',
+                    'error' => 'User not found'
+                ], 401);
+                // return response()->json(['error' => 'User not found'], 401);
             }
             If (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'Invalid password'], 401);
+                return response()->json([
+                    'message' => 'Invalid password',
+                    'error' => 'Invalid password'
+                ], 401);
+                // return response()->json(['error' => 'Invalid password'], 401);
             }
             
             return response()->json([
                 'token' => $token, 
                 'user' => $user]);
         } catch (JWTException $e) {
-            return response()->json(['error' => 'Could not create token'], 500);
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Could not create token'
+            ], 500);
+            // return response()->json(['error' => 'Could not create token'], 500);
         }
     }
     
@@ -141,7 +153,7 @@ class AuthController extends Controller
     public function getUser() {
         try {
             if (! $user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['error' => 'User not found'], 404);
+                return response()->json(['error' => 'User not found'], 401);
             }
         } catch (JWTException $e) {
             return response()->json([
@@ -197,7 +209,10 @@ class AuthController extends Controller
             return response()->json(['user' => $user, 'token' => $token]);
 
         } catch (Exception $th) {
-            return response()->json(['Error' => $th->getMessage()], 500);
+            return response()->json([
+                'message' => $th->getMessage(),
+                'error' => 'Error while handlong google callback'
+            ], 500);
         }
     }
     
@@ -216,7 +231,10 @@ class AuthController extends Controller
             $user = User::where('verification_token', $request->token)->first();
 
             if (!$user) {
-                return response()->json(['message' => 'Invalid token'], 400);
+                return response()->json([
+                    'error' => 'Invalid token', 
+                    'message' => 'Invalid token'
+                ], 400);
             }
 
             $user->update([
@@ -248,11 +266,15 @@ class AuthController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                return response()->json(['message' => 'User not found'], 404);
+                return response()->json([
+                    'error' => 'User not found', 
+                    'message' => 'User not found'], 401);
             }
         
             if ($user->email_verified_at) {
-                return response()->json(['message' => 'Email is already verified'], 400);
+                return response()->json([
+                    'error' => 'Email is already verified', 
+                    'message' => 'Email is already verified'], 400);
             }
 
             $token = Str::random(64);
@@ -266,7 +288,10 @@ class AuthController extends Controller
                 'message' => 'Verification email sent',
             ]);
         } catch (Exception $th) {
-            return response()->json(['Error' => $th->getMessage()], 500);
+            return response()->json([
+                'message' => $th->getMessage(),
+                'error' => 'Error whike resending verification email'
+            ], 500);
         }
     }
 
