@@ -536,6 +536,71 @@ class AdminAuthController extends Controller
         }
     }
 
+    public function batchDestroy(Request $request)
+    {
+        // Authorize admin (adjust as needed for your app)
+        // if (!$request->user() || !$request->user()->is_admin) {
+        //     return response()->json(['error' => 'Unauthorized'], 403);
+        // }
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:admins,id',
+        ]);
+
+        $ids = $request->input('ids');
+        $deleted = [];
+        $failed = [];
+
+        $admins = Admin::whereIn('id', $ids)->get();
+        $currentAdmin = JWTAuth::user();
+        foreach ($admins as $admin) {
+            try {
+                // Prevent self-deletion
+            if ($admin->id === $currentAdmin->id) {
+                $failed[] = $currentAdmin->id;
+                continue;
+                // return response()->json([
+                //     'message' => 'You cannot delete your own account'
+                // ], 403);
+            }
+
+            // Delete profile image if exists
+            if ($admin->profile_image) {
+                Storage::disk('public')->delete($admin->profile_image);
+            }
+
+            // Explicitly set deleted_at and save
+            $admin->deleted_at = now();
+            $admin->save();
+
+            // Log after deletion
+            Log::info('Admin soft deleted:', [
+                'admin_id' => $admin->id,
+                'deleted_at' => $admin->deleted_at
+            ]);
+
+                // Delete the movie
+                if($admin->delete()) {
+                    $deleted[] = $admin->id;
+                } else {
+                    $failed[] = $admin->id;
+                }
+                
+            } catch (\Exception $e) {
+                $failed[] = [
+                    'id' => $admin->id,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+        return response()->json([
+            'message' => 'Batch admins deleted successfully',
+            'deleted' => $deleted,
+            'failed' => $failed,
+        ]);
+    }
+
     /**
      * Get all active admin users with pagination
      *

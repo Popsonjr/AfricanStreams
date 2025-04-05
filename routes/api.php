@@ -82,6 +82,8 @@ Route::prefix('')->group(function () {
     // Movie Endpoints
     Route::get('/movie/all', [MovieController::class, 'index']);
     Route::post('/movie', [MovieController::class, 'store'])->middleware('auth:admin');
+    Route::put('/movie/{movie}', [MovieController::class, 'update'])->middleware('auth:admin');
+
     Route::get('/movie/popular', [MovieController::class, 'popular']);
     Route::get('/movie/now_playing', [MovieController::class, 'nowPlaying']);
     Route::get('/movie/upcoming', [MovieController::class, 'upcoming']);
@@ -127,6 +129,7 @@ Route::prefix('')->group(function () {
 Route::get('/genre/movie/list', [GenreController::class, 'movieGenres']);
 Route::get('/genre/tv/list', [GenreController::class, 'tvGenres']);
 
+
 // Genre Endpoints (Authenticated, Admin-Only)
 Route::middleware('auth:admin')->group(function () {
     Route::post('/genre', [GenreController::class, 'store']);
@@ -147,8 +150,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/password/reset', [AdminAuthController::class, 'resetPassword']);
     Route::get('/get/all', [AdminAuthController::class, 'getAllAdmins']);
     
-    Route::apiResource('movies', MovieController::class);
-    Route::get('movies/{id}/related', [MovieController::class, 'related']);
+
     
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('genres', GenreController::class);
@@ -159,6 +161,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/password/change', [AdminAuthController::class, 'changePassword']);
         Route::put('/update', [AdminAuthController::class, 'update']);
         Route::delete('/profile', [AdminAuthController::class, 'delete']);
+        Route::delete('/batch', [AdminAuthController::class, 'batchDestroy']);
         
         Route::post('/genres', [GenreController::class, 'store']);
         Route::put('/genres', [GenreController::class, 'update']);
@@ -170,8 +173,13 @@ Route::prefix('admin')->group(function () {
         
         Route::post('/movies', [MovieController::class, 'store']);
         Route::put('/movies', [MovieController::class, 'update']);
+        Route::delete('/movies/batch', [MovieController::class, 'batchDestroy']);
         Route::delete('/movies', [MovieController::class, 'delete']);
+
     });
+
+    Route::apiResource('movies', MovieController::class);
+    Route::get('movies/{id}/related', [MovieController::class, 'related']);
 });
 
 Route::post('/pay', [PaymentController::class, 'redirectToGateway'])->name('pay')->middleware('auth:api');
