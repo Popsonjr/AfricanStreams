@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Socialite\Facades\Socialite;
 // use Tymon\JWTAuth\Contracts\Providers\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -383,5 +384,125 @@ class AuthController extends Controller
                 'error' => 'Error while changing password'
             ], 500);
         }
+    }
+
+    public function delete(Request $request) {
+        try {
+            $request->validate([
+                'id' => 'required|exists:users,id'
+            ]);
+
+            $userToDelete = User::findOrFail($request->id);
+            $currentAdmin = JWTAuth::user();
+
+            // Log the admin being deleted
+            Log::info('Attempting to delete user:', [
+                'user_id' => $userToDelete->id,
+                'email' => $userToDelete->email,
+                'current_admin_id' => $currentAdmin->id
+            ]);
+
+            // // Prevent self-deletion
+            // if ($userToDelete->id === $currentAdmin->id) {
+            //     return response()->json([
+            //         'message' => 'You cannot delete your own account'
+            //     ], 403);
+            // }
+
+            // Delete profile image if exists
+            if ($userToDelete->profile_image) {
+                Storage::disk('public')->delete($userToDelete->profile_image);
+            }
+
+            // Explicitly set deleted_at and save
+            $userToDelete->deleted_at = now();
+            $userToDelete->save();
+
+            // Log after deletion
+            Log::info('Admin soft deleted:', [
+                'admin_id' => $userToDelete->id,
+                'deleted_at' => $userToDelete->deleted_at
+            ]);
+
+            return response()->json([
+                'message' => 'User account deleted successfully'
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Delete Error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while deleting user account'
+            ], 500);
+        }
+    }
+
+    public function batchDestroy(Request $request)
+    {
+        // Authorize admin (adjust as needed for your app)
+        // if (!$request->user() || !$request->user()->is_admin) {
+        //     return response()->json(['error' => 'Unauthorized'], 403);
+        // }
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $ids = $request->input('ids');
+        $deleted = [];
+        $failed = [];
+
+        $users = User::whereIn('id', $ids)->get();
+        $currentUser = JWTAuth::user();
+        foreach ($users as $user) {
+            try {
+                // Prevent self-deletion
+            if ($user->id === $currentUser->id) {
+                $failed[] = $currentUser->id;
+                continue;
+                // return response()->json([
+                //     'message' => 'You cannot delete your own account'
+                // ], 403);
+            }
+
+            // Delete profile image if exists
+            if ($user->profile_image) {
+                Storage::disk('public')->delete($user->profile_image);
+            }
+
+            // Explicitly set deleted_at and save
+            $user->deleted_at = now();
+            $user->save();
+
+            // Log after deletion
+            Log::info('User soft deleted:', [
+                'admin_id' => $user->id,
+                'deleted_at' => $user->deleted_at
+            ]);
+
+                // Delete the movie
+                if($user->delete()) {
+                    $deleted[] = $user->id;
+                } else {
+                    $failed[] = $user->id;
+                }
+                
+            } catch (\Exception $e) {
+                $failed[] = [
+                    'id' => $user->id,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+        return response()->json([
+            'message' => 'Batch users deleted successfully',
+            'deleted' => $deleted,
+            'failed' => $failed,
+        ]);
     }
 }

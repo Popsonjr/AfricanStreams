@@ -162,6 +162,8 @@ Route::prefix('admin')->group(function () {
         Route::put('/update', [AdminAuthController::class, 'update']);
         Route::delete('/profile', [AdminAuthController::class, 'delete']);
         Route::delete('/batch', [AdminAuthController::class, 'batchDestroy']);
+        Route::delete('user/profile', [AuthController::class, 'delete']);
+        Route::delete('user/batch', [AuthController::class, 'batchDestroy']);
         
         Route::post('/genres', [GenreController::class, 'store']);
         Route::put('/genres', [GenreController::class, 'update']);
