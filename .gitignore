@@ -23,3 +23,5 @@ yarn-error.log
 /.zed
 .txt
 /public
+temp_auto_push.bat
+temp_interactive_push.bat
