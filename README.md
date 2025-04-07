@@ -1,67 +1,333 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🎬 AfricanStreams - African Content Streaming Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A modern, feature-rich streaming platform built with Laravel 11, designed to showcase and distribute African movies, TV shows, and series. This platform provides a Netflix-like experience with comprehensive content management, user subscriptions, and advanced analytics.
 
-## About Laravel
+## ✨ Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 🎥 Content Management
+- **Movies & TV Shows**: Upload, categorize, and manage African content
+- **Episodes & Seasons**: Full series management with episode tracking
+- **Genres & Categories**: Flexible content organization system
+- **Media Assets**: Support for both file uploads and URL-based content
+- **Trailers & Thumbnails**: Rich media previews for content discovery
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 👥 User Management
+- **JWT Authentication**: Secure user authentication and authorization
+- **User Profiles**: Customizable profiles with avatar support
+- **Subscription Plans**: Multiple subscription tiers with Paystack integration
+- **Watchlists & Favorites**: Personalized content curation
+- **Watch History**: Track viewing progress and preferences
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🔐 Admin Panel
+- **Admin Authentication**: Secure admin login with role-based access
+- **Content Moderation**: Approve, edit, and manage all content
+- **User Management**: Monitor and manage user accounts
+- **Analytics Dashboard**: Comprehensive insights and statistics
+- **Bulk Operations**: Efficient content and user management
 
-## Learning Laravel
+### 📊 Analytics & Insights
+- **Real-time Statistics**: Live user counts, content metrics, and engagement
+- **Growth Tracking**: Monthly and rolling growth analytics
+- **User Behavior**: Watch patterns, ratings, and preferences
+- **Content Performance**: View counts, ratings, and popularity metrics
+- **Transaction History**: Complete subscription and payment tracking
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 🎯 Advanced Features
+- **Activity Logging**: Comprehensive user action tracking
+- **Rating & Review System**: Community-driven content evaluation
+- **Search & Discovery**: Advanced content search and recommendations
+- **Newsletter System**: User engagement and content updates
+- **Contact Management**: User support and feedback system
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 🚀 Technology Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Backend
+- **Laravel 11** - Modern PHP framework
+- **PHP 8.2+** - Latest PHP features and performance
+- **MySQL/PostgreSQL** - Robust database management
+- **JWT Authentication** - Secure API authentication
+- **Laravel Socialite** - Social media integration
 
-## Laravel Sponsors
+### Frontend
+- **Tailwind CSS** - Utility-first CSS framework
+- **Vite** - Modern build tool and dev server
+- **Alpine.js** - Lightweight JavaScript framework
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Development Tools
+- **Laravel Sail** - Docker development environment
+- **Laravel Pint** - PHP code style fixer
+- **PHPUnit** - Comprehensive testing framework
+- **Laravel Pail** - Advanced logging and debugging
 
-### Premium Partners
+## 📋 Prerequisites
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Before you begin, ensure you have the following installed:
+- **PHP 8.2 or higher**
+- **Composer 2.0 or higher**
+- **Node.js 18+ and npm**
+- **MySQL 8.0+ or PostgreSQL 13+**
+- **Redis** (optional, for caching)
 
-## Contributing
+## 🛠️ Installation
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/africanstreams.git
+cd africanstreams
+```
 
-## Code of Conduct
+### 2. Install Dependencies
+```bash
+# Install PHP dependencies
+composer install
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Install Node.js dependencies
+npm install
+```
 
-## Security Vulnerabilities
+### 3. Environment Configuration
+```bash
+# Copy environment file
+cp .env.example .env
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Generate application key
+php artisan key:generate
 
-## License
+# Configure your database and other services in .env
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# African Streams
+### 4. Database Setup
+```bash
+# Run migrations
+php artisan migrate
+
+# Seed the database with sample data
+php artisan db:seed
+
+# Generate JWT secret
+php artisan jwt:secret
+```
+
+### 5. Storage Setup
+```bash
+# Create storage link
+php artisan storage:link
+
+# Set proper permissions
+chmod -R 775 storage bootstrap/cache
+```
+
+### 6. Build Assets
+```bash
+# Development
+npm run dev
+
+# Production
+npm run build
+```
+
+### 7. Start the Application
+```bash
+# Using Laravel Sail (Docker)
+./vendor/bin/sail up
+
+# Using PHP's built-in server
+php artisan serve
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+Key environment variables to configure:
+
+```env
+APP_NAME="African Streams"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=africanstreams
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+
+JWT_SECRET=your_jwt_secret
+JWT_TTL=60
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+
+PAYSTACK_SECRET_KEY=your_paystack_secret
+PAYSTACK_PUBLIC_KEY=your_paystack_public
+```
+
+### File Storage
+Configure your preferred file storage driver in `config/filesystems.php`:
+- **Local**: For development
+- **S3**: For production (recommended)
+- **DigitalOcean Spaces**: Alternative cloud storage
+
+## 📚 API Documentation
+
+### Authentication Endpoints
+```
+POST /api/auth/register          # User registration
+POST /api/auth/login            # User login
+POST /api/auth/logout           # User logout
+POST /api/auth/refresh          # Refresh JWT token
+POST /api/auth/verify-email     # Email verification
+POST /api/auth/reset-password   # Password reset
+```
+
+### Admin Endpoints
+```
+POST /api/admin/register        # Admin registration
+POST /api/admin/login           # Admin login
+GET  /api/admin/users           # Get all admins
+PUT  /api/admin/users/{id}      # Update admin user
+DELETE /api/admin/users/{id}    # Delete admin user
+```
+
+### Content Endpoints
+```
+GET    /api/movies              # List all movies
+POST   /api/movies              # Create new movie
+GET    /api/movies/{id}         # Get movie details
+PUT    /api/movies/{id}         # Update movie
+DELETE /api/movies/{id}         # Delete movie
+
+GET    /api/series              # List all TV series
+POST   /api/series              # Create new series
+GET    /api/series/{id}         # Get series details
+PUT    /api/series/{id}         # Update series
+DELETE /api/series/{id}         # Delete series
+```
+
+### User Management Endpoints
+```
+GET    /api/users               # List all users
+GET    /api/users/{id}          # Get user details
+PUT    /api/users/{id}          # Update user profile
+DELETE /api/users/{id}          # Delete user account
+
+GET    /api/watchlist           # User's watchlist
+POST   /api/watchlist           # Add to watchlist
+DELETE /api/watchlist/{id}      # Remove from watchlist
+```
+
+### Analytics Endpoints
+```
+GET /api/dashboard/stats        # General statistics
+GET /api/dashboard/growth       # Growth analytics
+GET /api/dashboard/transactions # Transaction history
+```
+
+## 🧪 Testing
+
+Run the test suite to ensure everything works correctly:
+
+```bash
+# Run all tests
+php artisan test
+
+# Run tests with coverage
+php artisan test --coverage
+
+# Run specific test file
+php artisan test tests/Feature/MovieControllerTest.php
+```
+
+## 📁 Project Structure
+
+```
+africanstreams/
+├── app/
+│   ├── Http/Controllers/       # API Controllers
+│   ├── Models/                 # Eloquent Models
+│   ├── Services/               # Business Logic Services
+│   ├── Traits/                 # Reusable Traits
+│   └── Exceptions/             # Custom Exception Handlers
+├── database/
+│   ├── migrations/             # Database Schema
+│   ├── seeders/                # Sample Data
+│   └── factories/              # Model Factories
+├── routes/
+│   └── api.php                 # API Routes
+├── config/                     # Configuration Files
+├── storage/                    # File Storage
+└── tests/                      # Test Suite
+```
+
+## 🔒 Security Features
+
+- **JWT Authentication** with secure token management
+- **CSRF Protection** for web routes
+- **Input Validation** with comprehensive rules
+- **SQL Injection Prevention** through Eloquent ORM
+- **File Upload Security** with type and size validation
+- **Rate Limiting** on sensitive endpoints
+- **Soft Deletes** for data integrity
+
+## 📈 Performance Optimizations
+
+- **Database Indexing** on frequently queried fields
+- **Eager Loading** to prevent N+1 queries
+- **Pagination** for large datasets
+- **Caching** for frequently accessed data
+- **Image Optimization** for media assets
+- **API Response Caching** for static data
+
+## 🚀 Deployment
+
+### Production Checklist
+- [ ] Set `APP_ENV=production`
+- [ ] Set `APP_DEBUG=false`
+- [ ] Configure production database
+- [ ] Set up SSL certificates
+- [ ] Configure file storage (S3 recommended)
+- [ ] Set up monitoring and logging
+- [ ] Configure backup strategies
+- [ ] Set up CI/CD pipeline
+
+### Recommended Hosting
+- **VPS**: DigitalOcean, Linode, or Vultr
+- **Cloud**: AWS, Google Cloud, or Azure
+- **PaaS**: Heroku, Railway, or DigitalOcean App Platform
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Laravel Team** for the amazing framework
+- **Tymon JWT Auth** for JWT implementation
+- **Tailwind CSS** for the beautiful UI components
+- **African Content Creators** for inspiring this platform
+
+## 📞 Support
+
+If you have any questions or need support:
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/africanstreams/issues)
+- **Email**: support@africanstreams.com
+- **Documentation**: [Wiki](https://github.com/yourusername/africanstreams/wiki)
+
+---
+
+**Built with ❤️ for African Content Creators**
+
+*Empowering African stories through modern streaming technology.*
