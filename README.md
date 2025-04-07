@@ -48,17 +48,6 @@ A modern, feature-rich streaming platform built with Laravel 11, designed to sho
 - **JWT Authentication** - Secure API authentication
 - **Laravel Socialite** - Social media integration
 
-### Frontend
-- **Tailwind CSS** - Utility-first CSS framework
-- **Vite** - Modern build tool and dev server
-- **Alpine.js** - Lightweight JavaScript framework
-
-### Development Tools
-- **Laravel Sail** - Docker development environment
-- **Laravel Pint** - PHP code style fixer
-- **PHPUnit** - Comprehensive testing framework
-- **Laravel Pail** - Advanced logging and debugging
-
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -72,8 +61,8 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/africanstreams.git
-cd africanstreams
+git clone https://github.com/Popsonjr/AfricanStreams.git
+cd AfricanStreams
 ```
 
 ### 2. Install Dependencies
@@ -245,7 +234,7 @@ php artisan test tests/Feature/MovieControllerTest.php
 ## 📁 Project Structure
 
 ```
-africanstreams/
+AfricanStreams/
 ├── app/
 │   ├── Http/Controllers/       # API Controllers
 │   ├── Models/                 # Eloquent Models
@@ -322,9 +311,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you have any questions or need support:
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/africanstreams/issues)
-- **Email**: support@africanstreams.com
-- **Documentation**: [Wiki](https://github.com/yourusername/africanstreams/wiki)
+- **Issues**: [GitHub Issues](https://github.com/Popsonjr/AfricanStreams/issues)
+- **Email**: popoolama@gmail.com
+- **Documentation**: [Wiki](https://github.com/Popsonjr/AfricanStreams/wiki)
 
 ---
 
