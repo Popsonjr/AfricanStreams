@@ -148,7 +148,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/refresh', [AdminAuthController::class, 'refresh']);
     Route::post('/password/reset-request', [AdminAuthController::class, 'sendResetLink']);
     Route::post('/password/reset', [AdminAuthController::class, 'resetPassword']);
-    Route::get('/get/all', [AdminAuthController::class, 'getAllAdmins']);
+    
     
 
     
@@ -156,6 +156,8 @@ Route::prefix('admin')->group(function () {
     Route::apiResource('genres', GenreController::class);
 
     Route::middleware('auth:admin')->group(function () {
+        Route::get('/get/all', [AdminAuthController::class, 'getAllAdmins']);
+        Route::get('/users/get/all', [AuthController::class, 'getAllUsers']);
         Route::post('/me', [AdminAuthController::class, 'me']);
         Route::post('/get-user', [AdminAuthController::class, 'getUser']);
         Route::post('/password/change', [AdminAuthController::class, 'changePassword']);

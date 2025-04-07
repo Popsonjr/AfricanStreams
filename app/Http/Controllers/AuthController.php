@@ -505,4 +505,39 @@ class AuthController extends Controller
             'failed' => $failed,
         ]);
     }
+
+    public function getAllUsers() {
+        try {
+            // Get only active admins (explicitly exclude soft-deleted) with pagination
+            $users = User::whereNull('deleted_at')->paginate(100);
+            
+            // Log the count of active admins
+            Log::info('Active user count:', [
+                'total' => $users->total()
+            ]);
+
+            return response()->json([
+                'users' => $users->items(),
+                'pagination' => [
+                    'total' => $users->total(),
+                    'per_page' => $users->perPage(),
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                    'from' => $users->firstItem(),
+                    'to' => $users->lastItem()
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Get All Users Error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Error while fetching users'
+            ], 500);
+        }
+    }
 }

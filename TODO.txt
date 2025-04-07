@@ -13,3 +13,5 @@
 
 ADMIN
 -add phone number field
+
+-check if account has been deleted before new delete action, same in bulk endpoint
